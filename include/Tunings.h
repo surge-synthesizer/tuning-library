@@ -1,12 +1,34 @@
 // -*-c++-*-
 
-/*
-** HEADER
-** COPYRIGHT
-** SHORT LICENSE
-**
-** DOCUMENTATION 
-*/
+/**
+ * Tunings.h
+ * Copyright Paul Walker, 2019-2020
+ * Released under the MIT License. See LICENSE.md
+ *
+ * Tunings.h contains the public API required to determine full keyboard frequency maps
+ * for a scala SCL and KBM file in standalone, tested, open licensed C++ header only library.
+ *
+ * An example of using the API is
+ *
+ * ```
+ * auto s = Tunings::readSCLFile( "./my-scale.scl" );
+ * auto k = Tunings::readKBMFile( "./my-mapping.kbm" );
+ *
+ * Tunings::Tuning t( s, k );
+ *
+ * std::cout << "The frequency of C4 and A4 are "
+ *           << t.frequencyForMidiNote( 60 ) << " and " 
+ *           << t.frequencyForMidiNote( 69 ) << std::endl; 
+ * ```
+ * 
+ * The API provides several other points, such as access to the structure of the SCL and KBM,
+ * the ability to create several prototype SCL and KBM files wthout SCL or KBM content, 
+ * a frequency measure which is normalized by the frequency of standard tuning midi note 0
+ * and the logarithminc freuqency scale, with a doubling per frequency doubling.
+ * 
+ * Documentation is in the classe header below; tests are in `tests/all_tests.cpp` and
+ * a variety of command line tools accompany the header.
+ */
 
 #ifndef __INCLUDE_TUNINGS_H
 #define __INCLUDE_TUNINGS_H
@@ -19,20 +41,27 @@
 
 namespace Tunings
 {
-    const double MIDI_0_FREQ=8.17579891564371;
+    const double MIDI_0_FREQ=8.17579891564371; // or 440.0 * pow( 2.0, - (69.0/12.0 ) )
+
+    /**
+     * A Tone is a single entry in an SCL file. It is expressed either in cents or in
+     * a ratio, as described in the SCL documentation. 
+     *
+     * In most normal use, you will not use this class, and it will be internal to a Scale
+     */
     struct Tone
     {
         typedef enum Type
         {
-            kToneCents,
-            kToneRatio
+            kToneCents, // An SCL representation like "133.0"
+            kToneRatio // An SCL representation like "3/7"
         } Type;
         
         Type type;
         double cents;
         int ratio_d, ratio_n;
         std::string stringRep;
-        double floatValue;
+        double floatValue; // cents / 1200 + 1. 
         
         Tone() : type(kToneRatio),
                  cents(0),
@@ -43,14 +72,23 @@ namespace Tunings
             {
             }
     };
-    
+
+    /**
+     * The Scale is the representation of the SCL file. It contains several key
+     * features. Most importnatly it has a count and a vector of Tones.
+     *
+     * In most normal use, you will simply pass around instances of this class
+     * to a Tunings::Tuning instance, but in some cases you may want to create
+     * or inspect this class yourself. Especially if you are displaying this
+     * class to your end users, you may want to use the rawText or count metnods.
+     */
     struct Scale
     {
-        std::string name;
-        std::string description;
-        std::string rawText;
-        int count;
-        std::vector<Tone> tones;
+        std::string name; // The name in the SCL file. Informational only
+        std::string description; // The description in the SCL file. Informational only
+        std::string rawText; // The raw text of the SCL file used to create this Scale
+        int count; // The number of tones.
+        std::vector<Tone> tones; // The tones
 
         Scale() : name("empty scale"),
                   description(""),
@@ -58,26 +96,32 @@ namespace Tunings
                   count(0)
             {
             }
-
-        bool isValid() const;
     };
 
+    /**
+     * The KeyboardMapping class represents a KBM file. In most cases, the salient
+     * features are the tuningConstantNote and tuningFrequency, which allow you to
+     * pick a fixed note in the midi keyboard when retuning. The KBM file can also
+     * remap individual keys to individual points in a scale, which kere is done with the
+     * keys vector.
+     *
+     * Just as with Scale, the rawText member contains the text of the KBM file used.
+     */
+    
     struct KeyboardMapping
     {
-        bool isValid;
         int count;
         int firstMidi, lastMidi;
         int middleNote;
         int tuningConstantNote;
-        double tuningFrequency, tuningPitch;
+        double tuningFrequency, tuningPitch; // pitch = frequency / MIDI_0_FREQ
         int octaveDegrees;
         std::vector<int> keys; // rather than an 'x' we use a '-1' for skipped keys
 
         std::string rawText;
         std::string name;
         
-        KeyboardMapping() : isValid(true),
-                            count(0),
+        KeyboardMapping() : count(0),
                             firstMidi(0),
                             lastMidi(127),
                             middleNote(60),
@@ -91,35 +135,97 @@ namespace Tunings
             }
 
     };
-    
+
+    /**
+     * readSCLFile returns a Scale from the SCL File in fname
+     */
     Scale readSCLFile(std::string fname);
+
+    /**
+     * parseSCLData returns a scale from the SCL file contents in memory
+     */
     Scale parseSCLData(const std::string &sclContents);
+
+    /**
+     * evenTemperament12NoteScale provides a utility scale which is
+     * the "standard tuning" scale
+     */
     Scale evenTemperament12NoteScale();
-    
+
+    /**
+     * readKBMFile returns a KeyboardMapping from a KBM file name
+     */
     KeyboardMapping readKBMFile(std::string fname);
+
+    /**
+     * parseKBMData returns a KeyboardMapping from a KBM data in memory
+     */
     KeyboardMapping parseKBMData(const std::string &kbmContents);
+
+    /**
+     * tuneA69To creates a KeyboardMapping which keeps the midi note 69 (A4) set
+     * to a constant frequency, given
+     */
     KeyboardMapping tuneA69To(double freq);
         
 
     /**
-     * The Tuning class provides a frequency table given and is
-     * constructable from a scale and mapping
+     * The Tuning class is the primary place where you will interact with this librayr.
+     * It is constructed for a scale and mapping and then gives you the ability to 
+     * determine frequencies across and beyond the midi keyboard. Since modulation 
+     * can force key number well outside the [0,127] range in some of our synths we 
+     * support a midi note range from -256 to + 256 spanning more than the entire frequency
+     * space reasonable.
+     *
+     * To use this class, you construct a fresh instance every time you want to use a
+     * different Scale and Keyboard. If you want to tune to a different scale or mapping,
+     * just construct a new instance. 
      */
     class Tuning {
     public:
+        // The number of notes we pre-compute
         constexpr static int N = 512;
+
+        // Construct a tuning with even temperament and standard mapping
         Tuning();
+
+        /**
+         * Construct a tuning for a particular scale, mapping, or for both.
+         */
         Tuning( const Scale &s );
         Tuning( const KeyboardMapping &k );
         Tuning( const Scale &s, const KeyboardMapping &k );
 
         /**
-         * Write comment on range<
+         * These three related functions provide you the information you
+         * need to use this tuning.
+         *
+         * frequencyForMidiNote returns the Frequency in HZ for a given midi
+         * note. In standard tuning, FrequencyForMidiNote(69) will be 440
+         * and frequencyForMidiNote(60) will be 261.62 - the standard frequencies
+         * for A and middle C.
+         *
+         * frequencyForMidiNoteScaledByMidi0 returns the frequency but with the
+         * standard frequency of midi note 0 divided out. So in standard tuning
+         * frequencyForMidiNoteScaledByMidi0(0) = 1 and frequencyForMidiNoteScaledByMidi0(60) = 32
+         *
+         * Finally logScaledFrequencyForMidiNote returns the log base 2 of the scaled frequency.
+         * So logScaledFrequencyForMidiNote(0) = 0 and logScaledFrequencyForMidiNote(60) = 5.
+         *
+         * Both the frequency measures have the feature of doubling when frequency doubles 
+         * (or when a standard octave is spanned), whereas the log one increase by 1 per frequcncy double.
+         *
+         * Depending on your internal pitck model, one of these three methods should allow you
+         * to callibrate your oscillators to the appropriate frequency based on the midi note
+         * at hand.
          */
         double frequencyForMidiNote( int mn );
         double frequencyForMidiNoteScaledByMidi0( int mn );
         double logScaledFrequencyForMidiNote( int mn );
 
+        // For convenience, the scale and mapping used to construct this are kept as public copies
+        Scale scale;
+        KeyboardMapping keyboardMapping;
     private:
         std::array<double, N> ptable, lptable;
     };

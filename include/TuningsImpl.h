@@ -1,4 +1,15 @@
 // -*-c++-*-
+/**
+ * TuningsImpl.h
+ * Copyright 2019-2020 Paul Walker
+ * Released under the MIT License. See LICENSE.md
+ * 
+ * This contains the nasty nitty gritty implementation of the api in Tunings.h. You probably
+ * don't need to read it unless you have found and are fixing a bug, are curious, or want
+ * to add a feature to the API. For usages of this library, the documentation in Tunings.h and
+ * the usages in tests/all_tests.cpp should provide you more than enough guidance.
+ */
+
 #ifndef __INCLUDE_TUNINGS_IMPL_H
 #define __INCLUDE_TUNINGS_IMPL_H
 
@@ -217,6 +228,9 @@ namespace Tunings
     
     Tuning::Tuning(const Scale& s, const KeyboardMapping &k)
     {
+        scale = s;
+        keyboardMapping = k;
+        
         double pitches[N];
 
         int posPitch0 = 256 + k.tuningConstantNote;
