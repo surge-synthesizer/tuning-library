@@ -127,7 +127,7 @@ jobs:
     displayName: "Create New Github Release"
     inputs:
       gitHubConnection: surge-rackupdater
-      repositoryName: surge-synthesizer/dexed
+      repositoryName: surge-synthesizer/tuning-library
       action: 'edit'
       tag: Nightly
       target: '$(Build.SourceVersion)'
