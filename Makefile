@@ -4,16 +4,39 @@
 # to build tests and the standalone utilities
 #
 
-all:	build/alltests build/showmapping
+ifeq ($(OS),Windows_NT)
+	CC = g++
+	CCFLAGS = -Wall -Werror -std=c++14 -Iinclude -Ilibs/catch2
+	BLD = build/windows
+else
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)
+		CC = g++
+		CCFLAGS = -Wall -Werror -std=c++14 -Iinclude -Ilibs/catch2
+		BLD = build/linux
+	endif
+	ifeq ($(UNAME_S),Darwin)
+		CC = clang++
+		CCFLAGS = -Wall -Werror -std=c++14 -Iinclude -Ilibs/catch2
+		BLD = build/macos
+	endif
+endif
 
-build/alltests:	tests/alltests.cpp include/Tunings.h include/TuningsImpl.h build
-	clang++ -Wall -Werror -std=c++14 -Iinclude -Ilibs/catch2 tests/alltests.cpp -o build/alltests
+TUNING=include/Tunings.h include/TuningsImpl.h
 
-build/showmapping: commands/showmapping.cpp include/Tunings.h include/TuningsImpl.h build
-	clang++ -Wall -Werror -std=c++14 -Iinclude -Ilibs/catch2 commands/showmapping.cpp -o build/showmapping
+all:	$(BLD)/alltests $(BLD)/showmapping
 
-build:
-	mkdir build
+runtests:	all
+	$(BLD)/alltests
+
+$(BLD)/alltests:	tests/alltests.cpp $(TUNING) $(BLD)
+	$(CC) $(CCFLAGS) $< -o $@
+
+$(BLD)/showmapping: commands/showmapping.cpp $(TUNING) $(BLD)
+	$(CC) $(CCFLAGS) $< -o $@
+
+$(BLD):
+	mkdir -p $(BLD)
 
 clean:
 	rm -rf build

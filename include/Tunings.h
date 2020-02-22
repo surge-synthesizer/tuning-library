@@ -24,7 +24,7 @@
  * The API provides several other points, such as access to the structure of the SCL and KBM,
  * the ability to create several prototype SCL and KBM files wthout SCL or KBM content, 
  * a frequency measure which is normalized by the frequency of standard tuning midi note 0
- * and the logarithminc freuqency scale, with a doubling per frequency doubling.
+ * and the logarithminc frequency scale, with a doubling per frequency doubling.
  * 
  * Documentation is in the classe header below; tests are in `tests/all_tests.cpp` and
  * a variety of command line tools accompany the header.
