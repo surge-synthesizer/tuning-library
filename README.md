@@ -1,5 +1,7 @@
 # Surge Synth Team Tuning Library
 
+**WORK IN PROGRESS. PLEASE CHECK BACK IN A BIT**
+
 In [Surge](https://surge-synthesizer.github.io), we added microtuning 
 and spent a lot of time making sure our
 SCL/KBM implementation was properly callibrated and available for C++
