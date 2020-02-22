@@ -120,6 +120,97 @@ namespace Tunings
         return parseSCLData(data);
     }
 
+    
+    KeyboardMapping keyboardMappingFromStream(std::istream &inf)
+    {
+        std::string line;
+        
+        KeyboardMapping res;
+        std::ostringstream rawOSS;
+        res.keys.clear();
+        
+        enum parsePosition {
+            map_size = 0,
+            first_midi,
+            last_midi,
+            middle,
+            reference,
+            freq,
+            degree,
+            keys
+        };
+        parsePosition state = map_size;
+        
+        while (std::getline(inf, line))
+        {
+            rawOSS << line << "\n";
+            if (line[0] == '!')
+            {
+                continue;
+            }
+            
+            if( line == "x" ) line = "-1";
+            
+            int i = std::atoi(line.c_str());
+            float v = std::atof(line.c_str());
+            
+            switch (state)
+            {
+            case map_size:
+                res.count = i;
+                break;
+            case first_midi:
+                res.firstMidi = i;
+                break;
+            case last_midi:
+                res.lastMidi = i;
+                break;
+            case middle:
+                res.middleNote = i;
+                break;
+            case reference:
+                res.tuningConstantNote = i;
+                break;
+            case freq:
+                res.tuningFrequency = v;
+                res.tuningPitch = res.tuningFrequency / 8.17579891564371;
+                break;
+            case degree:
+                res.octaveDegrees = i;
+                break;
+            case keys:
+                res.keys.push_back(i);
+                break;
+            }
+            if( state != keys ) state = (parsePosition)(state + 1);
+        }
+        
+        res.rawText = rawOSS.str();
+        return res;
+    }
+
+    KeyboardMapping readKBMFile(std::string fname)
+    {
+        std::ifstream inf;
+        inf.open(fname);
+        if (!inf.is_open())
+        {
+            return KeyboardMapping();
+        }
+        
+        auto res = keyboardMappingFromStream(inf);
+        res.name = fname;
+        return res;
+    }
+    
+    KeyboardMapping parseKBMData(const std::string &d)
+    {
+        std::istringstream iss(d);
+        auto res = keyboardMappingFromStream(iss);
+        res.name = "Mapping from Patch";
+        return res;
+    }
+    
     Tuning::Tuning() : Tuning( evenTemperament12NoteScale(), KeyboardMapping() ) { }
     Tuning::Tuning(const Scale &s ) : Tuning( s, KeyboardMapping() ) {}
     Tuning::Tuning(const KeyboardMapping &k ) : Tuning( evenTemperament12NoteScale(), k ) {}

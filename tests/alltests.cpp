@@ -4,7 +4,17 @@
 #include "Tunings.h"
 #include <iomanip>
 
-// Even temp Function needs testing
+/*
+** ToDo
+** more scl parse
+** any kbm parse
+** tuning scl > 12 < 12
+** tuning with constant scl and multiple kbm
+** tuning with non-contiguous kbm
+** tuning with non-monotonic kbm
+** tuning with non-monotonic scl
+** few known tunings across the whole spectrun
+*/
 
 std::string testFile(std::string fn) {
     return std::string( "tests/data/" ) + fn;

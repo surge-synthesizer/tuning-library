@@ -7,6 +7,9 @@
 build/alltests:	tests/alltests.cpp include/Tunings.h include/TuningsImpl.h build
 	clang++ -Wall -Werror -std=c++14 -Iinclude -Ilibs/catch2 tests/alltests.cpp -o build/alltests
 
+build/showmapping: commands/showmapping.cpp include/Tunings.h include/TuningsImpl.h build
+	clang++ -Wall -Werror -std=c++14 -Iinclude -Ilibs/catch2 commands/showmapping.cpp -o build/showmapping
+
 build:
 	mkdir build
 
