@@ -4,6 +4,8 @@
 # to build tests and the standalone utilities
 #
 
+all:	build/alltests build/showmapping
+
 build/alltests:	tests/alltests.cpp include/Tunings.h include/TuningsImpl.h build
 	clang++ -Wall -Werror -std=c++14 -Iinclude -Ilibs/catch2 tests/alltests.cpp -o build/alltests
 

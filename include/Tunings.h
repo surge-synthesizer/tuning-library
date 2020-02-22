@@ -19,6 +19,7 @@
 
 namespace Tunings
 {
+    const double MIDI_0_FREQ=8.17579891564371;
     struct Tone
     {
         typedef enum Type
@@ -81,7 +82,7 @@ namespace Tunings
                             lastMidi(127),
                             middleNote(60),
                             tuningConstantNote(60),
-                            tuningFrequency(8.17579891564371 * 32.0),
+                            tuningFrequency(MIDI_0_FREQ * 32.0),
                             tuningPitch(32.0),
                             octaveDegrees(12),
                             rawText( "" ),
@@ -116,7 +117,7 @@ namespace Tunings
          * Write comment on range<
          */
         double frequencyForMidiNote( int mn );
-        double frequencyForMidiNoteScaledByC0( int mn );
+        double frequencyForMidiNoteScaledByMidi0( int mn );
         double logScaledFrequencyForMidiNote( int mn );
 
     private:

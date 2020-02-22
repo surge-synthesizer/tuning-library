@@ -22,9 +22,17 @@ int main( int argc, char **argv )
     }
 
     Tuning t(s, k);
+    std::cout << "Note ,"
+              << " Freq (Hz) , "
+              << "  ScaledFrq , "
+              << " logScaled " << std::endl;
+       
     for( int i=0; i<128; ++i )
     {
-        std::cout << i << ", " << t.frequencyForMidiNote(i) << ", " << t.frequencyForMidiNoteScaledByC0(i) << ", " << t.logScaledFrequencyForMidiNote(i) << std::endl;
+        std::cout << std::setw(4) << i << ", "
+                  << std::setw(10) << std::setprecision(10) << std::fixed << t.frequencyForMidiNote(i) << ", "
+                  << std::setw(10) << std::setprecision(10) << std::fixed << t.frequencyForMidiNoteScaledByMidi0(i) << ", "
+                  << std::setw(10) << std::setprecision(10) << std::fixed << t.logScaledFrequencyForMidiNote(i) << std::endl;
     }
     
 }

@@ -42,7 +42,7 @@ TEST_CASE( "Identity Tuning Tests" )
         REQUIRE( s.count == 12 );
         Tunings::Tuning t( s );
         REQUIRE( t.frequencyForMidiNote( 69 ) == Approx( 440.0 ).margin( 1e-10 ) );
-        REQUIRE( t.frequencyForMidiNoteScaledByC0( 60 ) == 32.0 );
+        REQUIRE( t.frequencyForMidiNoteScaledByMidi0( 60 ) == 32.0 );
         REQUIRE( t.logScaledFrequencyForMidiNote( 60 ) == 5.0 );
     }
 
@@ -53,13 +53,13 @@ TEST_CASE( "Identity Tuning Tests" )
         for( int i=0; i<12; ++i )
         {
             int note = - 12 * 4 + i;
-            auto sc = t.frequencyForMidiNoteScaledByC0( note );
+            auto sc = t.frequencyForMidiNoteScaledByMidi0( note );
             auto lc = t.logScaledFrequencyForMidiNote( note );
             while( note < 200 )
             {
                 note += 12;
                 auto nlc = t.logScaledFrequencyForMidiNote( note );
-                auto nsc = t.frequencyForMidiNoteScaledByC0( note );
+                auto nsc = t.frequencyForMidiNoteScaledByMidi0( note );
                 REQUIRE( nsc == Approx( sc * 2 ).margin(1e-8) );
                 REQUIRE( nlc == Approx(lc + 1).margin(1e-8) );
                 sc = nsc;
@@ -73,11 +73,11 @@ TEST_CASE( "Identity Tuning Tests" )
         auto s = Tunings::readSCLFile( testFile( "12-intune.scl" ) );
         Tunings::Tuning t( s );
         auto f60 = t.frequencyForMidiNote( 60 );
-        auto fs60 = t.frequencyForMidiNoteScaledByC0( 60 );
+        auto fs60 = t.frequencyForMidiNoteScaledByMidi0( 60 );
         for( int i=-200; i<200; ++i )
         {
             auto f = t.frequencyForMidiNote( i );
-            auto fs = t.frequencyForMidiNoteScaledByC0( i );
+            auto fs = t.frequencyForMidiNoteScaledByMidi0( i );
             REQUIRE( f/fs == f60/fs60 );
         }
     }

@@ -341,10 +341,10 @@ namespace Tunings
 
     double Tuning::frequencyForMidiNote( int mn ) {
         auto mni = std::min( std::max( 0, mn + 256 ), N-1 );
-        return ptable[ mni ] * 8.17579891564371;
+        return ptable[ mni ] * MIDI_0_FREQ;
     }
 
-    double Tuning::frequencyForMidiNoteScaledByC0( int mn ) {
+    double Tuning::frequencyForMidiNoteScaledByMidi0( int mn ) {
         auto mni = std::min( std::max( 0, mn + 256 ), N-1 );
         return ptable[ mni ];
     }
@@ -359,7 +359,7 @@ namespace Tunings
         KeyboardMapping k;
         k.tuningConstantNote = 69;
         k.tuningFrequency = freq;
-        k.tuningPitch = freq / 8.17579891564371;
+        k.tuningPitch = freq / MIDI_0_FREQ;
         return k;
     }
 
