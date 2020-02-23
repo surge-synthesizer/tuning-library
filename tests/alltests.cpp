@@ -317,4 +317,69 @@ TEST_CASE( "Remapping frequency with non-12-length scales" )
         }
 
     }
+
+    SECTION( "ED4-17" )
+    {
+        auto s = Tunings::readSCLFile( testFile( "ED4-17.scl" ) );
+        Tunings::Tuning t(s);
+
+        for( int i=0; i<100; ++i )
+        {
+            int mn = rand() % 40 + 40;
+            double freq = 150 + 300.0 * rand() / RAND_MAX;
+            INFO( "Setting " << mn << " to " << freq );
+            auto k = Tunings::tuneNoteTo( mn, freq );
+            Tunings::Tuning mapped(s,k);
+
+            REQUIRE( mapped.frequencyForMidiNote( mn ) == Approx( freq ).margin( 1e-6 ) );
+
+            // This scale is monotonic so test monotonicity still
+            for( int i=1; i<127; ++i )
+            {
+                INFO( "About to test at " << i );
+                if( mapped.frequencyForMidiNote(i) > 1 )
+                    REQUIRE(  mapped.frequencyForMidiNote( i ) > mapped.frequencyForMidiNote( i - 1 ) );
+            }
+
+            double n60ldiff = t.logScaledFrequencyForMidiNote(60) - mapped.logScaledFrequencyForMidiNote(60);
+            for( int j=0; j<128; ++j )
+            {
+                REQUIRE( t.logScaledFrequencyForMidiNote(j) - mapped.logScaledFrequencyForMidiNote(j) ==
+                         Approx( n60ldiff ).margin( 1e-6 ) ); 
+            }
+        }
+    }
+
+    SECTION( "ED3-17" )
+    {
+        auto s = Tunings::readSCLFile( testFile( "ED3-17.scl" ) );
+        Tunings::Tuning t(s);
+
+        for( int i=0; i<100; ++i )
+        {
+            int mn = rand() % 40 + 40;
+            double freq = 150 + 300.0 * rand() / RAND_MAX;
+            INFO( "Setting " << mn << " to " << freq );
+            auto k = Tunings::tuneNoteTo( mn, freq );
+            Tunings::Tuning mapped(s,k);
+
+            REQUIRE( mapped.frequencyForMidiNote( mn ) == Approx( freq ).margin( 1e-6 ) );
+
+            // This scale is monotonic so test monotonicity still
+            for( int i=1; i<127; ++i )
+            {
+                INFO( "About to test at " << i );
+                if( mapped.frequencyForMidiNote(i) > 1 )
+                    REQUIRE(  mapped.frequencyForMidiNote( i ) > mapped.frequencyForMidiNote( i - 1 ) );
+            }
+
+            double n60ldiff = t.logScaledFrequencyForMidiNote(60) - mapped.logScaledFrequencyForMidiNote(60);
+            for( int j=0; j<128; ++j )
+            {
+                REQUIRE( t.logScaledFrequencyForMidiNote(j) - mapped.logScaledFrequencyForMidiNote(j) ==
+                         Approx( n60ldiff ).margin( 1e-6 ) ); 
+            }
+        }
+    }
+
 }
