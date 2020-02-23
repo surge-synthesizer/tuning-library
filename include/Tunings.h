@@ -167,7 +167,13 @@ namespace Tunings
      * to a constant frequency, given
      */
     KeyboardMapping tuneA69To(double freq);
-        
+
+    /**
+     * tuneNoteTo creates a KeyboardMapping which keeps the midi note given is set
+     * to a constant frequency, given
+     */
+    KeyboardMapping tuneNoteTo(int midiNote, double freq);
+
 
     /**
      * The Tuning class is the primary place where you will interact with this librayr.
@@ -226,7 +232,7 @@ namespace Tunings
         // For convenience, the scale and mapping used to construct this are kept as public copies
         Scale scale;
         KeyboardMapping keyboardMapping;
-    private:
+//    private:
         std::array<double, N> ptable, lptable;
     };
     

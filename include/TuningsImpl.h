@@ -246,9 +246,25 @@ namespace Tunings
         if( scalePositionOfTuningNote == 0 )
             tuningCenterPitchOffset = 0;
         else
-            tuningCenterPitchOffset = s.tones[scalePositionOfTuningNote-1].floatValue - 1.0;
+        {
+            int tshift = 0;
+            while( scalePositionOfTuningNote < 0 )
+            {
+                scalePositionOfTuningNote += s.count;
+                tshift ++;
+            }
+            while( scalePositionOfTuningNote > s.count )
+            {
+                scalePositionOfTuningNote -= s.count;
+                tshift --;
+            }
 
-        pitches[posPitch0] = 1.0;
+            if( scalePositionOfTuningNote == 0 )
+                tuningCenterPitchOffset = -tshift;
+            else
+                tuningCenterPitchOffset = s.tones[scalePositionOfTuningNote-1].floatValue - 1.0 - tshift;
+        }
+
         for (int i=0; i<N; ++i)
         {
             // TODO: ScaleCenter and PitchCenter are now two different notes.
@@ -257,15 +273,16 @@ namespace Tunings
             
             if( distanceFromPitch0 == 0 )
             {
+                pitches[i] = 1;
                 lptable[i] = pitches[i] + pitchMod;
-                ptable[i] = pow( 2.0, pitches[i] + pitchMod );
+                ptable[i] = pow( 2.0, lptable[i] );
 #if DEBUG_SCALES
-                if( i > 296 && i < 340 )
-                    std::cout << "PITCH: i=" << i << " n=" << i - 256 
-                              << " p=" << pitches[i]
-                              << " tp=" << ptable[i]
-                              << " fr=" << ptable[i] * 8.175798915
-                              << std::endl;
+                std::cout << "PITCH: i=" << i << " n=" << i - 256 
+                          << " p=" << pitches[i]
+                          << " lp=" << lptable[i] 
+                          << " tp=" << ptable[i]
+                          << " fr=" << ptable[i] * 8.175798915
+                          << std::endl;
 #endif           
             }
             else 
@@ -338,12 +355,11 @@ namespace Tunings
                               << " dp0=" << distanceFromPitch0
                               << " r=" << rounds << " t=" << thisRound
                               << " p=" << pitches[i]
-                              << " t=" << s.tones[thisRound].floatValue << " " << s.tones[thisRound ]
+                              << " t=" << s.tones[thisRound].floatValue << " " << s.tones[thisRound ].cents
                               << " dis=" << disable
                               << " tp=" << ptable[i]
                               << " fr=" << ptable[i] * 8.175798915
                               << " tcpo=" << tuningCenterPitchOffset
-                              << " diff=" << ptable[i] - otp
                         
                         //<< " l2p=" << log(otp)/log(2.0)
                         //<< " l2p-p=" << log(otp)/log(2.0) - pitches[i] - rounds - 3
@@ -370,8 +386,13 @@ namespace Tunings
 
     KeyboardMapping tuneA69To(double freq)
     {
+        return tuneNoteTo( 69, freq );
+    }
+
+    KeyboardMapping tuneNoteTo( int midiNote, double freq )
+    {
         KeyboardMapping k;
-        k.tuningConstantNote = 69;
+        k.tuningConstantNote = midiNote;
         k.tuningFrequency = freq;
         k.tuningPitch = freq / MIDI_0_FREQ;
         return k;
