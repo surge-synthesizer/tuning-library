@@ -7,10 +7,8 @@
 
 /*
 ** ToDo
-** tuning with constant scl and multiple kbm
 ** tuning with non-contiguous kbm
 ** tuning with non-monotonic kbm
-** tuning with non-monotonic scl
 ** few known tunings across the whole spectrun
 */
 
@@ -25,7 +23,9 @@ std::vector<std::string> testSCLs() {
             "31edo.scl", 
             "6-exact.scl" ,
             "marvel12.scl" ,
-            "zeus22.scl" 
+            "zeus22.scl",
+            "ED4-17.scl",
+            "ED3-17.scl"
         } }; 
     return res;
         
@@ -236,6 +236,38 @@ TEST_CASE( "Several Sample Scales" )
         }
     }
 
+    SECTION( "ED3-17" )
+    {
+        auto s = Tunings::readSCLFile( testFile( "ED3-17.scl" ) );
+        Tunings::Tuning t(s);
+        REQUIRE( s.count == 17 );
+        REQUIRE( t.logScaledFrequencyForMidiNote(60) == 5 );
+
+        auto prev = t.logScaledFrequencyForMidiNote(60);
+        for( int i=1; i<40; ++i )
+        {
+            auto curr = t.logScaledFrequencyForMidiNote(60 + i);
+            REQUIRE( pow( 2.0, 17*(curr - prev) ) == Approx( 3.0 ).margin( 1e-6 ) );
+            prev = curr;
+        }
+    }
+
+    SECTION( "ED4-17" )
+    {
+        auto s = Tunings::readSCLFile( testFile( "ED4-17.scl" ) );
+        Tunings::Tuning t(s);
+        REQUIRE( s.count == 17 );
+        REQUIRE( t.logScaledFrequencyForMidiNote(60) == 5 );
+
+        auto prev = t.logScaledFrequencyForMidiNote(60);
+        for( int i=1; i<40; ++i )
+        {
+            auto curr = t.logScaledFrequencyForMidiNote(60 + i);
+            REQUIRE( pow( 2.0, 17*(curr - prev) ) == Approx( 4.0 ).margin( 1e-6 ) );
+            prev = curr;
+        }
+    }
+
     SECTION( "6 exact" )
     {
         auto s = Tunings::readSCLFile( testFile( "6-exact.scl" ) );
@@ -381,5 +413,54 @@ TEST_CASE( "Remapping frequency with non-12-length scales" )
             }
         }
     }
+}
 
+TEST_CASE( "KBMs with Gaps" )
+{
+    SECTION( "12 Intune with Gap" )
+    {
+        auto s = Tunings::readSCLFile( testFile( "12-intune.scl" ) );
+        auto k = Tunings::readKBMFile( testFile( "mapping-whitekeys-c261.kbm" ) );
+        Tunings::Tuning t( s );
+        Tunings::Tuning tm(s, k);
+
+        REQUIRE( s.count == 12 );
+        REQUIRE( t.frequencyForMidiNote(69) == Approx( 440.0 ).margin(1e-6) );
+
+        // That KBM maps the white keys to the chromatic start so
+        std::vector<std::pair<int, int> > maps = { {60, 60},
+                                                   {61, 62},
+                                                   {62, 64},
+                                                   {63, 65},
+                                                   {64, 67},
+                                                   {65, 69},
+                                                   {66, 71} };
+        for( auto p : maps )
+        {
+            REQUIRE( t.logScaledFrequencyForMidiNote(p.first) == Approx( tm.logScaledFrequencyForMidiNote(p.second) ).margin(1e-5) );
+        }
+    }
+}
+
+TEST_CASE( "KBM ReOrdering" )
+{
+    SECTION( "Non Monotonic KBM note" )
+    {
+        auto s = Tunings::readSCLFile( testFile( "12-intune.scl" ) );
+        auto k = Tunings::readKBMFile( testFile( "shuffle-a440-constant.kbm" ) );
+        Tunings::Tuning t(s, k);
+
+        REQUIRE( s.count == 12 );
+        REQUIRE( t.frequencyForMidiNote(69) == Approx( 440.0 ).margin(1e-6) );
+
+        std::vector<int> order = { { 0, 2, 1, 3, 4, 6, 5, 7, 8, 9, 11, 10, 12 } };
+        auto l60 = t.logScaledFrequencyForMidiNote(60);
+        for( size_t i=0; i<order.size(); ++i )
+        {
+            INFO( "Testing note " << i );
+            auto li = t.logScaledFrequencyForMidiNote(60 + i);
+            auto oi = order[i];
+            REQUIRE( li - l60 == Approx( oi / 12.0 ).margin( 1e-6 ) );
+        }
+    }
 }

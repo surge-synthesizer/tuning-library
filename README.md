@@ -31,8 +31,38 @@ to use it in your project but our approach is generally:
 The code is organized such that Tunings.h is the API and TuningsImpl.h is the header with more 
 involved implementation bodies. Tunings.h includes TuningsImpl.h automatically.
 
-## Using the command line tools
-
 ## Building the comand line tools and test suite
 
+Building the command line tools is really simple. 
 
+1. Start a terminal
+2. Type `make`
+
+That's it! Now, for make to work, you need a unix-like environment on windows.
+We followed exactly the VCV Rack dev setup and uses mysys, but really anything
+which has a working g++ in your path will be fine.
+
+The build ejects two assets. `alltests` which runs all the tests and `showmapping`
+
+## Using the showmapping command
+
+`showmapping` takes one or two arguments. It either takes an .scl file, in which
+case it dumps the frequency table for that .scl file with midi note 60 being the
+scale start tuned to 261hz, or it takes an .scl and .kbm file, in which case it
+prints the entire internal tuning table for the combination.
+
+## Bugs, Problems, etc
+
+If you find bugs, please open a github issue and we will fix it right away!
+
+If you have a non-bug problem, you can do the same or you can hop on the slack as
+detailed at https://surge-synth-team.org/
+
+If you would like to expand our test cases, we are always thrilled for you to do
+so. Drop in a pull request.
+
+If you choose to use the software in your synth, you can go right ahead of course.
+That's the point of the MIT licnese! But if you want to let us know, again pop open
+a github or drop in our slack. Always glad to hear from you.
+
+Enjoy!
