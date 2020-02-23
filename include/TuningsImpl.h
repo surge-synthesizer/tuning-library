@@ -247,16 +247,17 @@ namespace Tunings
             tuningCenterPitchOffset = 0;
         else
         {
-            int tshift = 0;
+            float tshift = 0;
+            float dt = s.tones[s.count -1].floatValue - 1.0;
             while( scalePositionOfTuningNote < 0 )
             {
                 scalePositionOfTuningNote += s.count;
-                tshift ++;
+                tshift += dt;;
             }
             while( scalePositionOfTuningNote > s.count )
             {
                 scalePositionOfTuningNote -= s.count;
-                tshift --;
+                tshift -= dt;
             }
 
             if( scalePositionOfTuningNote == 0 )
