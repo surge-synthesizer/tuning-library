@@ -44,13 +44,30 @@ std::vector<std::string> testKBMs() {
     return res;
 }
 
-TEST_CASE( "Loading .scl files" )
+TEST_CASE( "Loading tuning files" )
 {
     SECTION( "Load a 12 tone standard tuning" )
     {
         auto s = Tunings::readSCLFile( testFile( "12-intune.scl" ) );
         REQUIRE( s.count == 12 );
         // FIXME - write a lot more here obviously
+    }
+
+    SECTION( "KBM File from text" )
+    {
+        std::ostringstream oss;
+        oss << "! A scale file\n"
+            << "! with zero size\n"
+            << "0\n"
+            << "! spanning the keybaord\n"
+            << "0\n"
+            << "127\n"
+            << "! With C60 as constant and A as 452\n"
+            << "60\n69\n452\n"
+            << "! and an octave might as well be zero\n"
+            << "0\n";
+
+        REQUIRE_NOTHROW( Tunings::parseKBMData( oss.str() ) );
     }
 }
 
@@ -464,3 +481,103 @@ TEST_CASE( "KBM ReOrdering" )
         }
     }
 }
+
+TEST_CASE( "Exceptions and Bad Files" )
+{
+    SECTION( "Read Non-present files" )
+    {
+        REQUIRE_THROWS( Tunings::readSCLFile( "blahlfdsfds" ) );
+        REQUIRE_THROWS( Tunings::readKBMFile( "blahlfdsfds" ) );
+
+        // Lets make sure what is reasonable
+        try {
+            Tunings::readSCLFile( "MISSING" );
+        }
+        catch( const Tunings::TuningError &e )
+        {
+            REQUIRE( std::string( e.what() ) == "Unable to open file 'MISSING'" );
+        }
+    }
+
+    SECTION( "Bad SCL" )
+    {
+        // Trailing data is OK
+        REQUIRE_NOTHROW( Tunings::readSCLFile( testFile( "bad/extraline.scl" ) ) );
+        
+
+        REQUIRE_THROWS( Tunings::readSCLFile( testFile( "bad/badnote.scl" ) ) );
+        REQUIRE_THROWS( Tunings::readSCLFile( testFile( "bad/blanknote.scl" ) ) );
+        REQUIRE_THROWS( Tunings::readSCLFile( testFile( "bad/missingnote.scl" ) ) );
+    }
+
+    SECTION( "Bad KBM" )
+    {
+        REQUIRE_THROWS( Tunings::readKBMFile( testFile( "bad/blank-line.kbm" ) ) );
+        REQUIRE_THROWS( Tunings::readKBMFile( testFile( "bad/empty-bad.kbm" ) ) );
+        REQUIRE_THROWS( Tunings::readKBMFile( testFile( "bad/garbage-key.kbm" ) ) );
+        REQUIRE_NOTHROW( Tunings::readKBMFile( testFile( "bad/empty-extra.kbm" ) ) );
+        REQUIRE_NOTHROW( Tunings::readKBMFile( testFile( "bad/extraline-long.kbm" ) ) );
+        REQUIRE_THROWS( Tunings::readKBMFile( testFile( "bad/missing-note.kbm" ) ) );
+    }
+}
+
+TEST_CASE( "EDN-M" )
+{
+    SECTION( "ED2" )
+    {
+        auto s = Tunings::evenDivisionOfSpanByM( 2, 12 );
+        REQUIRE( s.count == 12 );
+        Tunings::Tuning ut;
+        Tunings::Tuning t(s);
+        for( int i=0;i<128;++i )
+            REQUIRE( t.logScaledFrequencyForMidiNote(i) == ut.logScaledFrequencyForMidiNote(i) );
+    }
+
+    SECTION( "ED3-17" )
+    {
+        auto s = Tunings::evenDivisionOfSpanByM( 3, 17 );
+        auto sf = Tunings::readSCLFile( testFile( "ED3-17.scl" ) );
+
+        Tunings::Tuning ut(sf);
+        Tunings::Tuning t(s);
+        for( int i=0;i<128;++i )
+            REQUIRE( t.logScaledFrequencyForMidiNote(i) == Approx( ut.logScaledFrequencyForMidiNote(i) ).margin( 1e-6 ));
+    }
+
+    SECTION( "ED4-17" )
+    {
+        auto s = Tunings::evenDivisionOfSpanByM( 4, 17 );
+        auto sf = Tunings::readSCLFile( testFile( "ED4-17.scl" ) );
+
+        Tunings::Tuning ut(sf);
+        Tunings::Tuning t(s);
+        for( int i=0;i<128;++i )
+            REQUIRE( t.logScaledFrequencyForMidiNote(i) == Approx( ut.logScaledFrequencyForMidiNote(i) ).margin(1e-6) );
+    }
+
+    SECTION( "Constraints on random EDN-M" )
+    {
+        for( int i=0; i<100; ++i )
+        {
+            int Span = rand() % 7 + 2;
+            int M = rand() % 50 + 3;
+            INFO( "Constructing " << i << " scale ED " << Span << " - " << M );
+
+            auto s = Tunings::evenDivisionOfSpanByM( Span, M );
+
+            REQUIRE( s.count == M );
+
+            Tunings::Tuning t(s);
+            REQUIRE( t.frequencyForMidiNoteScaledByMidi0(60) * Span ==
+                     Approx( t.frequencyForMidiNoteScaledByMidi0(60+M) ).margin( 1e-7 ) );
+
+            auto d0 = t.logScaledFrequencyForMidiNote(1) - t.logScaledFrequencyForMidiNote(0);
+            for( auto i=1; i<128; ++i )
+            {
+                auto d = t.logScaledFrequencyForMidiNote(i) - t.logScaledFrequencyForMidiNote(i-1);
+                REQUIRE( d == Approx( d0 ).margin( 1e-7 ) );
+            }
+        }
+    }
+}
+
