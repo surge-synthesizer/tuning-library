@@ -25,11 +25,12 @@ namespace Tunings
     Scale scaleFromStream(std::istream &inf)
     {
         std::string line;
-        const int read_header = 0, read_count = 1, read_note = 2;
+        const int read_header = 0, read_count = 1, read_note = 2, trailing = 3;
         int state = read_header;
 
         Scale res;
         std::ostringstream rawOSS;
+        int lineno = 1;
         while (std::getline(inf, line))
         {
             rawOSS << line << "\n";
@@ -70,6 +71,11 @@ namespace Tunings
                         t.ratio_d = atoi(line.substr(slashPos + 1).c_str());
                     }
 
+                    if( t.ratio_n == 0 || t.ratio_d == 0 )
+                    {
+                        std::string s = "Invalid Ratio in SCL file at line " + std::to_string(lineno) + ": line is '" + line + "'";
+                        throw TuningError(s);
+                    }
                     // 2^(cents/1200) = n/d
                     // cents = 1200 * log(n/d) / log(2)
             
@@ -77,11 +83,21 @@ namespace Tunings
                 }
                 t.floatValue = t.cents / 1200.0 + 1.0;
                 res.tones.push_back(t);
+                if( (int)res.tones.size() == res.count )
+                    state = trailing;
 
                 break;
             }
+            lineno ++;
         }
 
+        if( (int)res.tones.size() != res.count )
+        {
+            std::string s = "Read fewer notes than count in file. Count=" + std::to_string( res.count )
+                + " notes array size=" + std::to_string( res.tones.size() );
+            throw TuningError(s);
+
+        }
         res.rawText = rawOSS.str();
         return res;
     }
@@ -92,7 +108,8 @@ namespace Tunings
         inf.open(fname);
         if (!inf.is_open())
         {
-            return Scale();
+            std::string s = "Unable to open file '" + fname + "'";
+            throw TuningError(s);
         }
 
         auto res = scaleFromStream(inf);
@@ -131,6 +148,23 @@ namespace Tunings
         return parseSCLData(data);
     }
 
+    Scale evenDivisionOfSpanByM( int Span, int M )
+    {
+        std::ostringstream oss;
+        oss << "! Automatically generated ED" << Span << "-" << M << " scale\n";
+        oss << "Automatically generated ED" << Span << "-" << M << " scale\n";
+        oss << M << "\n";
+        oss << "!\n";
+
+                    
+        double topCents = 1200.0 * log(1.0 * Span) / log(2.0);
+        double dCents = topCents / M;
+        for( int i=1; i<M; ++i )
+            oss << std::fixed << dCents * i << "\n";
+        oss << Span << "/1\n";
+
+        return parseSCLData( oss.str() );
+    }
     
     KeyboardMapping keyboardMappingFromStream(std::istream &inf)
     {
@@ -148,10 +182,12 @@ namespace Tunings
             reference,
             freq,
             degree,
-            keys
+            keys,
+            trailing
         };
         parsePosition state = map_size;
-        
+
+        int lineno  = 1;
         while (std::getline(inf, line))
         {
             rawOSS << line << "\n";
@@ -161,6 +197,23 @@ namespace Tunings
             }
             
             if( line == "x" ) line = "-1";
+            else if( state != trailing )
+            {
+                const char* lc = line.c_str();
+                bool validLine = line.length() > 0;
+                while( *lc != '\0' )
+                {
+                    if( ! ( *lc == ' ' || std::isdigit( *lc ) || *lc == '.'  ) )
+                    {
+                        validLine = false;
+                    }
+                    lc ++;
+                }
+                if( ! validLine )
+                {
+                    throw TuningError( "Invalid line " + std::to_string( lineno ) + ". line='" + line + "'" );
+                }
+            }
             
             int i = std::atoi(line.c_str());
             float v = std::atof(line.c_str());
@@ -191,9 +244,26 @@ namespace Tunings
                 break;
             case keys:
                 res.keys.push_back(i);
+                if( (int)res.keys.size() == res.count ) state = trailing;
+                break;
+            case trailing:
                 break;
             }
-            if( state != keys ) state = (parsePosition)(state + 1);
+            if( ! ( state == keys || state == trailing ) ) state = (parsePosition)(state + 1);
+            if( state == keys && res.count == 0 ) state = trailing;
+            
+            lineno ++;
+        }
+
+        if( ! ( state == keys || state == trailing ) )
+        {
+            throw TuningError( "Incomplete KBM file. Ubable to get to keys section of file" );
+        }
+
+        if( (int)res.keys.size() != res.count )
+        {
+            throw TuningError( "Different number of keys than mapping file indicates. Count is "
+                               + std::to_string( res.count ) + " and we parsed " + std::to_string( res.keys.size() ) + " keys." );
         }
         
         res.rawText = rawOSS.str();
@@ -206,7 +276,8 @@ namespace Tunings
         inf.open(fname);
         if (!inf.is_open())
         {
-            return KeyboardMapping();
+            std::string s = "Unable to open file '" + fname + "'";
+            throw TuningError(s);
         }
         
         auto res = keyboardMappingFromStream(inf);

@@ -137,6 +137,18 @@ namespace Tunings
     };
 
     /**
+     * In some failure states, the tuning library will throw an exception of
+     * type TUningError with a descriptive message.
+     */
+    class TuningError : public std::exception {
+    public:
+        TuningError(std::string m) : whatv(m) { }
+        virtual const char* what() const noexcept override { return whatv.c_str(); }
+    private:
+        std::string whatv;
+    };
+
+    /**
      * readSCLFile returns a Scale from the SCL File in fname
      */
     Scale readSCLFile(std::string fname);
@@ -152,6 +164,13 @@ namespace Tunings
      */
     Scale evenTemperament12NoteScale();
 
+    /**
+     * evenDivisionOfSpanByM provides a scale referd to as "ED2-17" or 
+     * "ED3-24" by dividing the Span into M points. eventDivisionOfSpanByM(2,12)
+     * should be the evenTemperamanet12NoteScale
+     */
+    Scale evenDivisionOfSpanByM( int Span, int M );
+    
     /**
      * readKBMFile returns a KeyboardMapping from a KBM file name
      */

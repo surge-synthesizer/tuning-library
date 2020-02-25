@@ -32,6 +32,9 @@ runtests:	all
 $(BLD)/alltests:	tests/alltests.cpp $(TUNING) $(BLD)
 	$(CC) $(CCFLAGS) $< -o $@
 
+$(BLD)/alltests_cov:	tests/alltests.cpp $(TUNING) $(BLD)
+	$(CC) $(CCFLAGS) --coverage $< -o $@
+
 $(BLD)/showmapping: commands/showmapping.cpp $(TUNING) $(BLD)
 	$(CC) $(CCFLAGS) $< -o $@
 
@@ -41,4 +44,8 @@ $(BLD):
 clean:
 	rm -rf build
 
-
+coverage:	$(BLD)/alltests_cov
+	$(BLD)/alltests_cov
+	mkdir -p $(BLD)/coverage
+	mv alltests* $(BLD)/coverage
+	cd $(BLD)/coverage && gcov alltests.gcna
