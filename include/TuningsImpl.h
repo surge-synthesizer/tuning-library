@@ -22,6 +22,15 @@
 
 namespace Tunings
 {
+    double locale_atof(const char* s)
+    {
+        double result = 0;
+        std::istringstream istr(s);
+        istr.imbue(std::locale("C"));
+        istr >> result;
+        return result;
+    }
+    
     Scale scaleFromStream(std::istream &inf)
     {
         std::string line;
@@ -54,7 +63,7 @@ namespace Tunings
                 if (line.find(".") != std::string::npos)
                 {
                     t.type = Tone::kToneCents;
-                    t.cents = atof(line.c_str());
+                    t.cents = locale_atof(line.c_str());
                 }
                 else
                 {
@@ -151,6 +160,7 @@ namespace Tunings
     Scale evenDivisionOfSpanByM( int Span, int M )
     {
         std::ostringstream oss;
+        oss.imbue( std::locale( "C" ) );
         oss << "! Automatically generated ED" << Span << "-" << M << " scale\n";
         oss << "Automatically generated ED" << Span << "-" << M << " scale\n";
         oss << M << "\n";
@@ -216,7 +226,7 @@ namespace Tunings
             }
             
             int i = std::atoi(line.c_str());
-            float v = std::atof(line.c_str());
+            float v = locale_atof(line.c_str());
             
             switch (state)
             {
