@@ -1,9 +1,11 @@
-#define CATCH_CONFIG_MAIN
+#define CATCH_CONFIG_RUNNER
 #include "catch2.hpp"
 
 #include "Tunings.h"
 #include <iomanip>
 #include <vector>
+#include <locale>
+#include <ctime>
 
 /*
 ** ToDo
@@ -231,6 +233,8 @@ TEST_CASE( "Internal Constraints between Measures" )
 
         if( spainAvailable )
         {
+            auto priorLocale = std::locale( "" ).name();
+            
             std::locale::global( std::locale( "es_ES" ) );
             for( auto fs: testSCLs() )
                 for( auto fk : testKBMs() )
@@ -246,7 +250,7 @@ TEST_CASE( "Internal Constraints between Measures" )
                         REQUIRE( t.frequencyForMidiNoteScaledByMidi0(i) == pow( 2.0, t.logScaledFrequencyForMidiNote(i) ) );
                     }
                 }
-            std::locale::global( std::locale( "" ) );
+            std::locale::global( std::locale( priorLocale ) );
         }
     }
 }
@@ -614,3 +618,32 @@ TEST_CASE( "EDN-M" )
     }
 }
 
+
+int main(int argc, char **argv)
+{
+    if( getenv( "LANG" ) != nullptr )
+    {
+        try {
+            std::locale::global( std::locale( getenv( "LANG" ) ) );
+            std::cout << "Setting LOCALE to '" << getenv( "LANG" ) << "'. ";
+
+            time_t rawtime;
+            struct tm * timeinfo;
+            char buffer[512];
+
+            time (&rawtime);
+            timeinfo = localtime(&rawtime);
+
+            // work around a windows g++ warning error
+            const char* fmt = "%A %e %B %Y";
+            strftime(buffer, sizeof(buffer), fmt ,timeinfo);
+            
+            std::cout << "Date in this locale: '" << buffer << "'" << std::endl;;
+        } catch( std::exception &e ) {
+            std::locale::global( std::locale ("C") );
+        }
+
+    }
+    int result = Catch::Session().run( argc, argv );
+    return result;
+}

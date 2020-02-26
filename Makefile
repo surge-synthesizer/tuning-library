@@ -27,7 +27,14 @@ TUNING=include/Tunings.h include/TuningsImpl.h
 all:	$(BLD)/alltests $(BLD)/showmapping
 
 runtests:	all
-	$(BLD)/alltests
+	@$(BLD)/alltests
+
+	@LANG=`locale -a | grep es_ES | grep -v "\." | head -1` $(BLD)/alltests
+	@LANG=`locale -a | grep fr_FR | grep -v "\." | head -1` $(BLD)/alltests
+	@LANG=`locale -a | grep ja_JP | grep -v "\." | head -1` $(BLD)/alltests
+	@LANG=`locale -a | grep zh_CN | grep -v "\." | head -1` $(BLD)/alltests
+	@LANG=`locale -a | grep MAKE_SURE_NULL_IS_OK | grep -v "\." | head -1` $(BLD)/alltests	
+
 
 $(BLD)/alltests:	tests/alltests.cpp $(TUNING) $(BLD)
 	$(CC) $(CCFLAGS) $< -o $@
