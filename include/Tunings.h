@@ -244,9 +244,9 @@ namespace Tunings
          * to calibrate your oscillators to the appropriate frequency based on the midi note
          * at hand.
          */
-        double frequencyForMidiNote( int mn );
-        double frequencyForMidiNoteScaledByMidi0( int mn );
-        double logScaledFrequencyForMidiNote( int mn );
+        double frequencyForMidiNote( int mn ) const;
+        double frequencyForMidiNoteScaledByMidi0( int mn ) const;
+        double logScaledFrequencyForMidiNote( int mn ) const;
 
         // For convenience, the scale and mapping used to construct this are kept as public copies
         Scale scale;
