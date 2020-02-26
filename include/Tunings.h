@@ -24,9 +24,9 @@
  * The API provides several other points, such as access to the structure of the SCL and KBM,
  * the ability to create several prototype SCL and KBM files wthout SCL or KBM content, 
  * a frequency measure which is normalized by the frequency of standard tuning midi note 0
- * and the logarithminc frequency scale, with a doubling per frequency doubling.
+ * and the logarithmic frequency scale, with a doubling per frequency doubling.
  * 
- * Documentation is in the classe header below; tests are in `tests/all_tests.cpp` and
+ * Documentation is in the class header below; tests are in `tests/all_tests.cpp` and
  * a variety of command line tools accompany the header.
  */
 
@@ -75,12 +75,12 @@ namespace Tunings
 
     /**
      * The Scale is the representation of the SCL file. It contains several key
-     * features. Most importnatly it has a count and a vector of Tones.
+     * features. Most importantly it has a count and a vector of Tones.
      *
      * In most normal use, you will simply pass around instances of this class
      * to a Tunings::Tuning instance, but in some cases you may want to create
      * or inspect this class yourself. Especially if you are displaying this
-     * class to your end users, you may want to use the rawText or count metnods.
+     * class to your end users, you may want to use the rawText or count methods.
      */
     struct Scale
     {
@@ -138,7 +138,7 @@ namespace Tunings
 
     /**
      * In some failure states, the tuning library will throw an exception of
-     * type TUningError with a descriptive message.
+     * type TuningError with a descriptive message.
      */
     class TuningError : public std::exception {
     public:
@@ -167,7 +167,7 @@ namespace Tunings
     /**
      * evenDivisionOfSpanByM provides a scale referd to as "ED2-17" or 
      * "ED3-24" by dividing the Span into M points. eventDivisionOfSpanByM(2,12)
-     * should be the evenTemperamanet12NoteScale
+     * should be the evenTemperament12NoteScale
      */
     Scale evenDivisionOfSpanByM( int Span, int M );
     
@@ -195,7 +195,7 @@ namespace Tunings
 
 
     /**
-     * The Tuning class is the primary place where you will interact with this librayr.
+     * The Tuning class is the primary place where you will interact with this library.
      * It is constructed for a scale and mapping and then gives you the ability to 
      * determine frequencies across and beyond the midi keyboard. Since modulation 
      * can force key number well outside the [0,127] range in some of our synths we 
@@ -238,10 +238,10 @@ namespace Tunings
          * So logScaledFrequencyForMidiNote(0) = 0 and logScaledFrequencyForMidiNote(60) = 5.
          *
          * Both the frequency measures have the feature of doubling when frequency doubles 
-         * (or when a standard octave is spanned), whereas the log one increase by 1 per frequcncy double.
+         * (or when a standard octave is spanned), whereas the log one increase by 1 per frequency double.
          *
-         * Depending on your internal pitck model, one of these three methods should allow you
-         * to callibrate your oscillators to the appropriate frequency based on the midi note
+         * Depending on your internal pitch model, one of these three methods should allow you
+         * to calibrate your oscillators to the appropriate frequency based on the midi note
          * at hand.
          */
         double frequencyForMidiNote( int mn );

@@ -4,11 +4,11 @@
 
 In [Surge](https://surge-synthesizer.github.io), we added microtuning 
 and spent a lot of time making sure our
-SCL/KBM implementation was properly callibrated and available for C++
-programs. We then added that same implmentation to [dexed] through a copy.
+SCL/KBM implementation was properly calibrated and available for C++
+programs. We then added that same implementation to [dexed] through a copy.
 
 But we realized we could make the functions available as standalone C++ header
-only library and get three benefits
+only library and get three benefits.
 
 1. Share more code between Surge and our Dexed fork
 2. Make the code available to other soft synths where we or others may add microtuning
@@ -62,7 +62,7 @@ If you would like to expand our test cases, we are always thrilled for you to do
 so. Drop in a pull request.
 
 If you choose to use the software in your synth, you can go right ahead of course.
-That's the point of the MIT licnese! But if you want to let us know, again pop open
+That's the point of the MIT license! But if you want to let us know, again pop open
 a github or drop in our slack. Always glad to hear from you.
 
 Enjoy!
