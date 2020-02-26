@@ -216,6 +216,39 @@ TEST_CASE( "Internal Constraints between Measures" )
                 }
             }
     }
+
+    SECTION( "Test All Constraints SCL and KBM in Spain" )
+    {
+        bool spainAvailable = true;
+        try {
+            std::locale( "es_ES" );
+        }
+        catch( std::exception &e )
+        {
+            INFO( "es_ES locale not availale on this machine; skpping test" );
+            spainAvailable = false;
+        }
+
+        if( spainAvailable )
+        {
+            std::locale::global( std::locale( "es_ES" ) );
+            for( auto fs: testSCLs() )
+                for( auto fk : testKBMs() )
+                {
+                    INFO( "Testing Constraints with " << fs << " " << fk );
+                    auto s = Tunings::readSCLFile(testFile(fs));
+                    auto k = Tunings::readKBMFile(testFile(fk));
+                    Tunings::Tuning t(s,k);
+                    
+                    for( int i=0; i<127; ++i )
+                    {
+                        REQUIRE( t.frequencyForMidiNote(i) == t.frequencyForMidiNoteScaledByMidi0(i) * Tunings::MIDI_0_FREQ );
+                        REQUIRE( t.frequencyForMidiNoteScaledByMidi0(i) == pow( 2.0, t.logScaledFrequencyForMidiNote(i) ) );
+                    }
+                }
+            std::locale::global( std::locale( "" ) );
+        }
+    }
 }
 
 TEST_CASE( "Several Sample Scales" )
