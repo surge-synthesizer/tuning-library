@@ -34,6 +34,15 @@ jobs:
     displayName: Build with make
 
   - bash: |
+      sudo locale-gen es_ES
+      sudo locale-gen fr_FR
+      sudo locale-gen ja_JP
+      sudo locale-gen zh_CN
+      sudo update-locale
+    displayName: Install Locales on Linux
+    condition: variables.isLinux
+
+  - bash: |
       make runtests
     displayName: Run tests with make
 
