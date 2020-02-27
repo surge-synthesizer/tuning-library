@@ -163,8 +163,9 @@ TEST_CASE( "Simple Keyboard Remapping Tunes A69" )
                 REQUIRE( t.frequencyForMidiNote(69) / ut.frequencyForMidiNote(69) == Approx( ratio ).margin( 1e-8 ) );
             }
         }
-
     }
+
+    
 }
 
 TEST_CASE( "Internal Constraints between Measures" )
@@ -558,12 +559,13 @@ TEST_CASE( "Exceptions and Bad Files" )
     }
 }
 
-TEST_CASE( "EDN-M" )
+TEST_CASE( "Built in Generators" )
 {
     SECTION( "ED2" )
     {
         auto s = Tunings::evenDivisionOfSpanByM( 2, 12 );
         REQUIRE( s.count == 12 );
+        REQUIRE( s.rawText.size() > 1 );
         Tunings::Tuning ut;
         Tunings::Tuning t(s);
         for( int i=0;i<128;++i )
@@ -603,6 +605,7 @@ TEST_CASE( "EDN-M" )
             auto s = Tunings::evenDivisionOfSpanByM( Span, M );
 
             REQUIRE( s.count == M );
+            REQUIRE( s.rawText.size() > 1 );
 
             Tunings::Tuning t(s);
             REQUIRE( t.frequencyForMidiNoteScaledByMidi0(60) * Span ==
@@ -614,6 +617,20 @@ TEST_CASE( "EDN-M" )
                 auto d = t.logScaledFrequencyForMidiNote(i) - t.logScaledFrequencyForMidiNote(i-1);
                 REQUIRE( d == Approx( d0 ).margin( 1e-7 ) );
             }
+        }
+    }
+
+    SECTION( "KBM Generator" )
+    {
+        for( int i=0; i<100; ++i )
+        {
+            int n = rand() % 60 + 30;
+            int fr = 1000.0 * rand() / RAND_MAX + 50;
+            auto k = Tunings::tuneNoteTo( n, fr );
+            REQUIRE( k.tuningConstantNote == n );
+            REQUIRE( k.tuningFrequency == fr );
+            REQUIRE( k.tuningPitch == k.tuningFrequency / Tunings::MIDI_0_FREQ );
+            REQUIRE( k.rawText.size() > 1 );
         }
     }
 }
