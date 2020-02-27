@@ -473,11 +473,25 @@ namespace Tunings
 
     KeyboardMapping tuneNoteTo( int midiNote, double freq )
     {
-        KeyboardMapping k;
-        k.tuningConstantNote = midiNote;
-        k.tuningFrequency = freq;
-        k.tuningPitch = freq / MIDI_0_FREQ;
-        return k;
+        std::ostringstream oss;
+        oss.imbue( std::locale( "C" ) );
+        oss << "! Automatically generated mapping, tuning note " << midiNote << " to " << freq << " hz\n"
+            << "!\n"
+            << "! Size of Map\n"
+            << 0 << "\n"
+            << "! First and Last Midi Notes to map - map the entire keyboard\n"
+            << 0 << "\n" << 127 << "\n"
+            << "! Middle note where the first entry in the scale is mapped.\n"
+            << 60 << "\n"
+            << "! Reference not where frequency is fixed\n"
+            << midiNote << "\n"
+            << "! Frequency for midi note " << midiNote << "\n"
+            << freq << "\n"
+            << "! Scale degree for formal octave. This is am empty mapping so:\n"
+            << 0 << "\n"
+            << "! Mapping. This is an empty mapping so list no keys\n";
+        
+        return parseKBMData( oss.str() );
     }
 
 }
