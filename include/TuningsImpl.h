@@ -19,6 +19,7 @@
 #include <cstdlib>
 #include <math.h>
 #include <sstream>
+#include <cctype>
 
 namespace Tunings
 {
@@ -226,7 +227,7 @@ namespace Tunings
             }
             
             int i = std::atoi(line.c_str());
-            float v = locale_atof(line.c_str());
+            double v = locale_atof(line.c_str());
             
             switch (state)
             {
@@ -328,8 +329,8 @@ namespace Tunings
             tuningCenterPitchOffset = 0;
         else
         {
-            float tshift = 0;
-            float dt = s.tones[s.count -1].floatValue - 1.0;
+            double tshift = 0;
+            double dt = s.tones[s.count -1].floatValue - 1.0;
             while( scalePositionOfTuningNote < 0 )
             {
                 scalePositionOfTuningNote += s.count;
