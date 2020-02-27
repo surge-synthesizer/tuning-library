@@ -24,9 +24,11 @@ endif
 
 TUNING=include/Tunings.h include/TuningsImpl.h
 
-all:	$(BLD)/alltests $(BLD)/showmapping
+all:	$(BLD)/alltests $(BLD)/showmapping $(BLD)/symbolcheck
 
 runtests:	all
+	@$(BLD)/symbolcheck
+
 	@$(BLD)/alltests
 
 	@LANG=`locale -a | grep es_ES | grep -v "\." | head -1` $(BLD)/alltests
@@ -35,6 +37,11 @@ runtests:	all
 	@LANG=`locale -a | grep zh_CN | head -1` $(BLD)/alltests
 	@LANG=`locale -a | grep MAKE_SURE_NULL_IS_OK | grep -v "\." | head -1` $(BLD)/alltests	
 
+$(BLD)/symbolcheck:	tests/symbolcheck1.cpp tests/symbolcheck2.cpp $(TUNING) $(BLD)
+	@echo If this build fails, you forgot an inline
+	$(CC) $(CCFLAGS) -c tests/symbolcheck1.cpp -o $(BLD)/symbolcheck1.o
+	$(CC) $(CCFLAGS) -c tests/symbolcheck2.cpp -o $(BLD)/symbolcheck2.o
+	$(CC) $(CCFLAGS) $(BLD)/symbolcheck1.o $(BLD)/symbolcheck2.o -o $(BLD)/symbolcheck
 
 $(BLD)/alltests:	tests/alltests.cpp $(TUNING) $(BLD)
 	$(CC) $(CCFLAGS) $< -o $@
