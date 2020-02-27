@@ -31,8 +31,8 @@ runtests:	all
 
 	@LANG=`locale -a | grep es_ES | grep -v "\." | head -1` $(BLD)/alltests
 	@LANG=`locale -a | grep fr_FR | grep -v "\." | head -1` $(BLD)/alltests
-	@LANG=`locale -a | grep ja_JP | grep -v "\." | head -1` $(BLD)/alltests
-	@LANG=`locale -a | grep zh_CN | grep -v "\." | head -1` $(BLD)/alltests
+	@LANG=`locale -a | grep ja_JP | head -1` $(BLD)/alltests
+	@LANG=`locale -a | grep zh_CN | head -1` $(BLD)/alltests
 	@LANG=`locale -a | grep MAKE_SURE_NULL_IS_OK | grep -v "\." | head -1` $(BLD)/alltests	
 
 
