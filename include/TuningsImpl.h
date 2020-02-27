@@ -22,7 +22,7 @@
 
 namespace Tunings
 {
-    double locale_atof(const char* s)
+    inline double locale_atof(const char* s)
     {
         double result = 0;
         std::istringstream istr(s);
@@ -31,7 +31,7 @@ namespace Tunings
         return result;
     }
     
-    Scale scaleFromStream(std::istream &inf)
+    inline Scale scaleFromStream(std::istream &inf)
     {
         std::string line;
         const int read_header = 0, read_count = 1, read_note = 2, trailing = 3;
@@ -111,7 +111,7 @@ namespace Tunings
         return res;
     }
 
-    Scale readSCLFile(std::string fname)
+    inline Scale readSCLFile(std::string fname)
     {
         std::ifstream inf;
         inf.open(fname);
@@ -126,7 +126,7 @@ namespace Tunings
         return res;
     }
 
-    Scale parseSCLData(const std::string &d)
+    inline Scale parseSCLData(const std::string &d)
     {
         std::istringstream iss(d);
         auto res = scaleFromStream(iss);
@@ -134,7 +134,7 @@ namespace Tunings
         return res;
     }
 
-    Scale evenTemperament12NoteScale()
+    inline Scale evenTemperament12NoteScale()
     {
         std::string data = R"SCL(! even.scl
 !
@@ -157,7 +157,7 @@ namespace Tunings
         return parseSCLData(data);
     }
 
-    Scale evenDivisionOfSpanByM( int Span, int M )
+    inline Scale evenDivisionOfSpanByM( int Span, int M )
     {
         std::ostringstream oss;
         oss.imbue( std::locale( "C" ) );
@@ -176,7 +176,7 @@ namespace Tunings
         return parseSCLData( oss.str() );
     }
     
-    KeyboardMapping keyboardMappingFromStream(std::istream &inf)
+    inline KeyboardMapping keyboardMappingFromStream(std::istream &inf)
     {
         std::string line;
         
@@ -280,7 +280,7 @@ namespace Tunings
         return res;
     }
 
-    KeyboardMapping readKBMFile(std::string fname)
+    inline KeyboardMapping readKBMFile(std::string fname)
     {
         std::ifstream inf;
         inf.open(fname);
@@ -295,7 +295,7 @@ namespace Tunings
         return res;
     }
     
-    KeyboardMapping parseKBMData(const std::string &d)
+    inline KeyboardMapping parseKBMData(const std::string &d)
     {
         std::istringstream iss(d);
         auto res = keyboardMappingFromStream(iss);
@@ -303,11 +303,11 @@ namespace Tunings
         return res;
     }
     
-    Tuning::Tuning() : Tuning( evenTemperament12NoteScale(), KeyboardMapping() ) { }
-    Tuning::Tuning(const Scale &s ) : Tuning( s, KeyboardMapping() ) {}
-    Tuning::Tuning(const KeyboardMapping &k ) : Tuning( evenTemperament12NoteScale(), k ) {}
+    inline Tuning::Tuning() : Tuning( evenTemperament12NoteScale(), KeyboardMapping() ) { }
+    inline Tuning::Tuning(const Scale &s ) : Tuning( s, KeyboardMapping() ) {}
+    inline Tuning::Tuning(const KeyboardMapping &k ) : Tuning( evenTemperament12NoteScale(), k ) {}
     
-    Tuning::Tuning(const Scale& s, const KeyboardMapping &k)
+    inline Tuning::Tuning(const Scale& s, const KeyboardMapping &k)
     {
         scale = s;
         keyboardMapping = k;
@@ -451,27 +451,27 @@ namespace Tunings
         }
     }
 
-    double Tuning::frequencyForMidiNote( int mn ) const {
+    inline double Tuning::frequencyForMidiNote( int mn ) const {
         auto mni = std::min( std::max( 0, mn + 256 ), N-1 );
         return ptable[ mni ] * MIDI_0_FREQ;
     }
 
-    double Tuning::frequencyForMidiNoteScaledByMidi0( int mn ) const {
+    inline double Tuning::frequencyForMidiNoteScaledByMidi0( int mn ) const {
         auto mni = std::min( std::max( 0, mn + 256 ), N-1 );
         return ptable[ mni ];
     }
 
-    double Tuning::logScaledFrequencyForMidiNote( int mn ) const {
+    inline double Tuning::logScaledFrequencyForMidiNote( int mn ) const {
         auto mni = std::min( std::max( 0, mn + 256 ), N-1 );
         return lptable[ mni ];
     }
 
-    KeyboardMapping tuneA69To(double freq)
+    inline KeyboardMapping tuneA69To(double freq)
     {
         return tuneNoteTo( 69, freq );
     }
 
-    KeyboardMapping tuneNoteTo( int midiNote, double freq )
+    inline KeyboardMapping tuneNoteTo( int midiNote, double freq )
     {
         KeyboardMapping k;
         k.tuningConstantNote = midiNote;
