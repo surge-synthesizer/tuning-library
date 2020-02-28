@@ -636,6 +636,18 @@ TEST_CASE( "Built in Generators" )
 }
 
 
+TEST_CASE( "Dos Line Endings" )
+{
+    SECTION( "SCL" )
+    {
+        REQUIRE_NOTHROW( Tunings::readSCLFile( testFile( "12-intune-dosle.scl" ) ) );
+    }
+    SECTION( "KBM" )
+    {
+        REQUIRE_NOTHROW( Tunings::readKBMFile( testFile( "empty-note69-dosle.kbm" ) ) );
+    }
+}
+
 int main(int argc, char **argv)
 {
     if( getenv( "LANG" ) != nullptr )
@@ -664,3 +676,4 @@ int main(int argc, char **argv)
     int result = Catch::Session().run( argc, argv );
     return result;
 }
+
