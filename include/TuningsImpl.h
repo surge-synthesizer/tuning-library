@@ -40,10 +40,12 @@ namespace Tunings
 
         Scale res;
         std::ostringstream rawOSS;
-        int lineno = 1;
+        int lineno = 0;
         while (std::getline(inf, line))
         {
             rawOSS << line << "\n";
+            lineno ++;
+
             if (line[0] == '!')
             {
                 continue;
@@ -98,7 +100,6 @@ namespace Tunings
 
                 break;
             }
-            lineno ++;
         }
 
         if( (int)res.tones.size() != res.count )
@@ -198,10 +199,11 @@ namespace Tunings
         };
         parsePosition state = map_size;
 
-        int lineno  = 1;
+        int lineno  = 0;
         while (std::getline(inf, line))
         {
             rawOSS << line << "\n";
+            lineno ++;
             if (line[0] == '!')
             {
                 continue;
@@ -212,17 +214,20 @@ namespace Tunings
             {
                 const char* lc = line.c_str();
                 bool validLine = line.length() > 0;
-                while( *lc != '\0' )
+                char badChar = '\0';
+                while( validLine && *lc != '\0' )
                 {
-                    if( ! ( *lc == ' ' || std::isdigit( *lc ) || *lc == '.'  ) )
+                    if( ! ( *lc == ' ' || std::isdigit( *lc ) || *lc == '.'  || *lc == (char)13 || *lc == '\n' ) )
                     {
                         validLine = false;
+                        badChar = *lc;
                     }
                     lc ++;
                 }
                 if( ! validLine )
                 {
-                    throw TuningError( "Invalid line " + std::to_string( lineno ) + ". line='" + line + "'" );
+                    throw TuningError( "Invalid line " + std::to_string( lineno ) + ". line='" + line + "'. Bad char is '" +
+                                       badChar + "/" + std::to_string( (int)badChar ) + "'" );
                 }
             }
             
@@ -263,7 +268,6 @@ namespace Tunings
             if( ! ( state == keys || state == trailing ) ) state = (parsePosition)(state + 1);
             if( state == keys && res.count == 0 ) state = trailing;
             
-            lineno ++;
         }
 
         if( ! ( state == keys || state == trailing ) )
