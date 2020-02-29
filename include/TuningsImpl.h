@@ -102,6 +102,11 @@ namespace Tunings
             }
         }
 
+        if( ! ( state == read_note || state == trailing ) )
+        {
+            throw TuningError( "Incomplete SCL file. Found no notes section in the file" );
+        }
+        
         if( (int)res.tones.size() != res.count )
         {
             std::string s = "Read fewer notes than count in file. Count=" + std::to_string( res.count )
@@ -316,6 +321,10 @@ namespace Tunings
     {
         scale = s;
         keyboardMapping = k;
+
+        if( s.count <= 0 )
+            throw TuningError( "Unable to tune to a scale with no notes. Your scale provided " + std::to_string( s.count ) + " notes." );
+            
         
         double pitches[N];
 

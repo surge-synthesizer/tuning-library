@@ -524,8 +524,8 @@ TEST_CASE( "Exceptions and Bad Files" )
 {
     SECTION( "Read Non-present files" )
     {
-        REQUIRE_THROWS( Tunings::readSCLFile( "blahlfdsfds" ) );
-        REQUIRE_THROWS( Tunings::readKBMFile( "blahlfdsfds" ) );
+        REQUIRE_THROWS_AS( Tunings::readSCLFile( "blahlfdsfds" ), Tunings::TuningError );
+        REQUIRE_THROWS_AS( Tunings::readKBMFile( "blahlfdsfds" ), Tunings::TuningError );
 
         // Lets make sure what is reasonable
         try {
@@ -543,19 +543,19 @@ TEST_CASE( "Exceptions and Bad Files" )
         REQUIRE_NOTHROW( Tunings::readSCLFile( testFile( "bad/extraline.scl" ) ) );
         
 
-        REQUIRE_THROWS( Tunings::readSCLFile( testFile( "bad/badnote.scl" ) ) );
-        REQUIRE_THROWS( Tunings::readSCLFile( testFile( "bad/blanknote.scl" ) ) );
-        REQUIRE_THROWS( Tunings::readSCLFile( testFile( "bad/missingnote.scl" ) ) );
+        REQUIRE_THROWS_AS( Tunings::readSCLFile( testFile( "bad/badnote.scl" ) ), Tunings::TuningError );
+        REQUIRE_THROWS_AS( Tunings::readSCLFile( testFile( "bad/blanknote.scl" ) ), Tunings::TuningError );
+        REQUIRE_THROWS_AS( Tunings::readSCLFile( testFile( "bad/missingnote.scl" ) ), Tunings::TuningError );
     }
 
     SECTION( "Bad KBM" )
     {
-        REQUIRE_THROWS( Tunings::readKBMFile( testFile( "bad/blank-line.kbm" ) ) );
-        REQUIRE_THROWS( Tunings::readKBMFile( testFile( "bad/empty-bad.kbm" ) ) );
-        REQUIRE_THROWS( Tunings::readKBMFile( testFile( "bad/garbage-key.kbm" ) ) );
+        REQUIRE_THROWS_AS( Tunings::readKBMFile( testFile( "bad/blank-line.kbm" ) ), Tunings::TuningError );
+        REQUIRE_THROWS_AS( Tunings::readKBMFile( testFile( "bad/empty-bad.kbm" ) ), Tunings::TuningError );
+        REQUIRE_THROWS_AS( Tunings::readKBMFile( testFile( "bad/garbage-key.kbm" ) ), Tunings::TuningError );
         REQUIRE_NOTHROW( Tunings::readKBMFile( testFile( "bad/empty-extra.kbm" ) ) );
         REQUIRE_NOTHROW( Tunings::readKBMFile( testFile( "bad/extraline-long.kbm" ) ) );
-        REQUIRE_THROWS( Tunings::readKBMFile( testFile( "bad/missing-note.kbm" ) ) );
+        REQUIRE_THROWS_AS( Tunings::readKBMFile( testFile( "bad/missing-note.kbm" ) ), Tunings::TuningError );
     }
 }
 
@@ -636,7 +636,7 @@ TEST_CASE( "Built in Generators" )
 }
 
 
-TEST_CASE( "Dos Line Endings" )
+TEST_CASE( "Dos Line Endings and Blanks" )
 {
     SECTION( "SCL" )
     {
@@ -645,6 +645,16 @@ TEST_CASE( "Dos Line Endings" )
     SECTION( "KBM" )
     {
         REQUIRE_NOTHROW( Tunings::readKBMFile( testFile( "empty-note69-dosle.kbm" ) ) );
+    }
+    SECTION( "Blank SCL" )
+    {
+        REQUIRE_THROWS_AS( Tunings::parseSCLData( "" ), Tunings::TuningError );
+
+        // but what if we do construct a bad one?
+        Tunings::Scale s;
+        s.count = 0;
+        s.tones.clear();
+        REQUIRE_THROWS_AS( Tunings::Tuning(s), Tunings::TuningError );
     }
 }
 
