@@ -74,6 +74,11 @@ namespace Tunings
     };
 
     /**
+     * Given an SCL string like "100.231" or "3/7" set up a Tone
+     */
+    inline Tone toneFromString(const std::string &t, int lineno=-1);
+
+    /**
      * The Scale is the representation of the SCL file. It contains several key
      * features. Most importantly it has a count and a vector of Tones.
      *
@@ -193,6 +198,11 @@ namespace Tunings
      */
     KeyboardMapping tuneNoteTo(int midiNote, double freq);
 
+    /**
+     * startScaleOnAndTuneNoteTo generates a KBM where scaleStart is the note 0
+     * of the scale, where midiNote is the tuned note, and where feq is the frequency
+     */
+    KeyboardMapping startScaleOnAndTuneNoteTo(int scaleStart, int midiNote, double freq);
 
     /**
      * The Tuning class is the primary place where you will interact with this library.
