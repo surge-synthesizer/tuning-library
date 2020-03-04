@@ -145,7 +145,7 @@ namespace Tunings
     {
         std::string data = R"SCL(! even.scl
 !
-12 note even temprament
+12 note even temperament
  12
 !
  100.0
