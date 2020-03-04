@@ -658,6 +658,39 @@ TEST_CASE( "Dos Line Endings and Blanks" )
     }
 }
 
+TEST_CASE( "Tone API" )
+{
+    // This is exercised a million times above so just a light test here
+    SECTION( "Valid Tones" )
+    {
+        auto t1 = Tunings::toneFromString( "130.0" );
+        REQUIRE( t1.type == Tunings::Tone::kToneCents );
+        REQUIRE( t1.cents == 130.0 );
+        REQUIRE( t1.floatValue == 130.0 / 1200.0 + 1.0 );
+
+        auto t2 = Tunings::toneFromString( "7/2" );
+        REQUIRE( t2.type == Tunings::Tone::kToneRatio );
+        REQUIRE( t2.ratio_d == 2 );
+        REQUIRE( t2.ratio_n == 7 );
+        REQUIRE( t2.floatValue == Approx( log( 7.0 / 2.0 ) / log( 2.0 ) + 1.0 ).margin( 1e-6 ) );
+
+        auto t3 = Tunings::toneFromString( "3" );
+        REQUIRE( t3.type == Tunings::Tone::kToneRatio );
+        REQUIRE( t3.ratio_d == 1 );
+        REQUIRE( t3.ratio_n == 3 );
+        REQUIRE( t3.floatValue == Approx( log( 3.0 / 1.0 ) / log( 2.0 ) + 1.0 ).margin( 1e-6 ) );
+    }
+
+    SECTION( "Error Tones" )
+    {
+        REQUIRE_THROWS_AS( Tunings::toneFromString( "Not a number" ), Tunings::TuningError );
+        // FIXME - these cases doesn't throw yet
+        // REQUIRE_THROWS_AS( Tunings::toneFromString( "100.200 with extra stuff" ), Tunings::TuningError );
+        // REQUIRE_THROWS_AS( Tunings::toneFromString( "7/4/2" ), Tunings::TuningError );
+        // REQUIRE_THROWS_AS( Tunings::toneFromString( "7*2" ), Tunings::TuningError );
+    }
+}
+
 int main(int argc, char **argv)
 {
     if( getenv( "LANG" ) != nullptr )

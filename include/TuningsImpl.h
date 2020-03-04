@@ -31,6 +31,47 @@ namespace Tunings
         istr >> result;
         return result;
     }
+
+    inline Tone toneFromString(const std::string &line, int lineno)
+    {
+        Tone t;
+        t.stringRep = line;
+        if (line.find(".") != std::string::npos)
+        {
+            t.type = Tone::kToneCents;
+            t.cents = locale_atof(line.c_str());
+        }
+        else
+        {
+            t.type = Tone::kToneRatio;
+            auto slashPos = line.find("/");
+            if (slashPos == std::string::npos)
+            {
+                t.ratio_n = atoi(line.c_str());
+                t.ratio_d = 1;
+            }
+            else
+            {
+                t.ratio_n = atoi(line.substr(0, slashPos).c_str());
+                t.ratio_d = atoi(line.substr(slashPos + 1).c_str());
+            }
+            
+            if( t.ratio_n == 0 || t.ratio_d == 0 )
+            {
+                std::string s = "Invalid Tone in SCL file.";
+                if( lineno >= 0 )
+                    s += "Line " + std::to_string(lineno) + ".";
+                s += " Line is '" + line + "'.";
+                throw TuningError(s);
+            }
+            // 2^(cents/1200) = n/d
+            // cents = 1200 * log(n/d) / log(2)
+            
+            t.cents = 1200 * log(1.0 * t.ratio_n/t.ratio_d) / log(2.0);
+        }
+        t.floatValue = t.cents / 1200.0 + 1.0;
+        return t;
+    }
     
     inline Scale scaleFromStream(std::istream &inf)
     {
@@ -61,39 +102,7 @@ namespace Tunings
                 state = read_note;
                 break;
             case read_note:
-                Tone t;
-                t.stringRep = line;
-                if (line.find(".") != std::string::npos)
-                {
-                    t.type = Tone::kToneCents;
-                    t.cents = locale_atof(line.c_str());
-                }
-                else
-                {
-                    t.type = Tone::kToneRatio;
-                    auto slashPos = line.find("/");
-                    if (slashPos == std::string::npos)
-                    {
-                        t.ratio_n = atoi(line.c_str());
-                        t.ratio_d = 1;
-                    }
-                    else
-                    {
-                        t.ratio_n = atoi(line.substr(0, slashPos).c_str());
-                        t.ratio_d = atoi(line.substr(slashPos + 1).c_str());
-                    }
-
-                    if( t.ratio_n == 0 || t.ratio_d == 0 )
-                    {
-                        std::string s = "Invalid Ratio in SCL file at line " + std::to_string(lineno) + ": line is '" + line + "'";
-                        throw TuningError(s);
-                    }
-                    // 2^(cents/1200) = n/d
-                    // cents = 1200 * log(n/d) / log(2)
-            
-                    t.cents = 1200 * log(1.0 * t.ratio_n/t.ratio_d) / log(2.0);
-                }
-                t.floatValue = t.cents / 1200.0 + 1.0;
+                auto t = toneFromString(line, lineno);
                 res.tones.push_back(t);
                 if( (int)res.tones.size() == res.count )
                     state = trailing;
@@ -487,6 +496,11 @@ namespace Tunings
 
     inline KeyboardMapping tuneNoteTo( int midiNote, double freq )
     {
+        return startScaleOnAndTuneNoteTo( 60, midiNote, freq );
+    }
+
+    inline KeyboardMapping startScaleOnAndTuneNoteTo( int scaleStart, int midiNote, double freq )
+    {
         std::ostringstream oss;
         oss.imbue( std::locale( "C" ) );
         oss << "! Automatically generated mapping, tuning note " << midiNote << " to " << freq << " hz\n"
@@ -496,7 +510,7 @@ namespace Tunings
             << "! First and Last Midi Notes to map - map the entire keyboard\n"
             << 0 << "\n" << 127 << "\n"
             << "! Middle note where the first entry in the scale is mapped.\n"
-            << 60 << "\n"
+            << scaleStart << "\n"
             << "! Reference not where frequency is fixed\n"
             << midiNote << "\n"
             << "! Frequency for midi note " << midiNote << "\n"
