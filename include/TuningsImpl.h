@@ -381,6 +381,7 @@ namespace Tunings
                 pitches[i] = 1;
                 lptable[i] = pitches[i] + pitchMod;
                 ptable[i] = pow( 2.0, lptable[i] );
+                scalepositiontable[i] = scalePositionOfTuningNote % s.count;
 #if DEBUG_SCALES
                 std::cout << "PITCH: i=" << i << " n=" << i - 256 
                           << " p=" << pitches[i]
@@ -446,9 +447,15 @@ namespace Tunings
                 }
 
                 if( disable )
+                {
                     pitches[i] = 0;
+                    scalepositiontable[i] = -1;
+                }
                 else
+                {
                     pitches[i] = s.tones[thisRound].floatValue + rounds * (s.tones[s.count - 1].floatValue - 1.0) - tuningCenterPitchOffset;
+                    scalepositiontable[i] = ( thisRound + 1 ) % s.count;
+                }
 
                 lptable[i] = pitches[i] + pitchMod;
                 ptable[i] = pow( 2.0, pitches[i] + pitchMod );
@@ -487,6 +494,11 @@ namespace Tunings
     inline double Tuning::logScaledFrequencyForMidiNote( int mn ) const {
         auto mni = std::min( std::max( 0, mn + 256 ), N-1 );
         return lptable[ mni ];
+    }
+
+    inline int Tuning::scalePositionForMidiNote( int mn ) const {
+        auto mni = std::min( std::max( 0, mn + 256 ), N-1 );
+        return scalepositiontable[ mni ];
     }
 
     inline KeyboardMapping tuneA69To(double freq)

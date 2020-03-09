@@ -691,6 +691,126 @@ TEST_CASE( "Tone API" )
     }
 }
 
+TEST_CASE( "Scale Position" )
+{
+    SECTION( "Untuned" )
+    {
+        Tunings::Tuning t;
+        for( int i=0; i< 127; ++i )
+            REQUIRE( t.scalePositionForMidiNote( i ) == i % 12 );
+    }
+
+    SECTION( "Untuned, Mapped" )
+    {
+        {
+            auto k = Tunings::startScaleOnAndTuneNoteTo( 60, 69, 440 );
+            Tunings::Tuning t(k);
+
+            for( int i=0; i<127; ++i )
+            {
+                INFO( "Check " << i << " " << t.scalePositionForMidiNote(i) );
+                REQUIRE( t.scalePositionForMidiNote(i) == i % 12 );
+            }
+
+        }
+        for( int j=0; j<100; ++j )
+        {
+            int n = rand() % 60 + 30;
+            auto k = Tunings::startScaleOnAndTuneNoteTo( n, 69, 440 );
+            Tunings::Tuning t(k);
+
+            INFO( "Checking scale position with 0 mapped to " << n << " " << n % 12 );
+            for( int i=0; i<127; ++i )
+            {
+                INFO( "Check " << i << " " << t.scalePositionForMidiNote(i) << " with n=" << n );
+                REQUIRE( t.scalePositionForMidiNote(i) == ( i + 12 - n % 12 ) % 12 );
+            }
+        }
+
+        {
+            // Check whitekeys
+            auto k = Tunings::readKBMFile( testFile( "mapping-whitekeys-c261.kbm" ) );
+            Tunings::Tuning t(k);
+
+            // That KBM maps the white keys to the chromatic start so
+            std::vector<std::pair<int, int> > maps = { {0, 0},
+                                                       {2, 1},
+                                                       {4, 2},
+                                                       {5, 3},
+                                                       {7, 4},
+                                                       {9, 5},
+                                                       {11, 6} };
+            for( int i=0; i<127; ++i )
+            {
+                auto spn = t.scalePositionForMidiNote(i);
+                int expected = -1;
+                for( auto p : maps )
+                    if( i % 12 == p.first )
+                        expected = p.second;
+                REQUIRE( spn == expected );
+            }
+        }
+
+    }
+
+    SECTION( "Tuned, Unmapped" )
+    {
+        // Check longer and shorter scales
+        {
+            auto s = Tunings::readSCLFile( testFile( "zeus22.scl" ) );
+            Tunings::Tuning t(s);
+
+            int off = 60;
+            while( off > 0 ) off -= s.count;
+            
+            for( int i=0; i<127; ++i )
+            {
+                INFO( "Check " << i << " " << t.scalePositionForMidiNote(i) << off );
+                REQUIRE( t.scalePositionForMidiNote(i) == ( i - off ) % s.count );
+            }
+        }
+
+                // Check longer and shorter scales
+        {
+            auto s = Tunings::readSCLFile( testFile( "6-exact.scl" ) );
+            Tunings::Tuning t(s);
+
+            int off = 60;
+            while( off >= 0 ) off -= s.count;
+            
+            for( int i=0; i<127; ++i )
+            {
+                INFO( "Check " << i << " " << t.scalePositionForMidiNote(i) << off );
+                REQUIRE( t.scalePositionForMidiNote(i) == ( i - off ) % s.count );
+            }
+        }
+
+    }
+
+    SECTION( "Tuned, Mapped" )
+    {
+        // And check some combos
+        for( int j=0; j<100; ++j )
+        {
+            int n = rand() % 60 + 30;
+            
+            auto s = Tunings::readSCLFile( testFile( "zeus22.scl" ) );
+            auto k = Tunings::startScaleOnAndTuneNoteTo( n, 69, 440 );
+            Tunings::Tuning t(s, k);
+
+            int off = n;
+            while( off > 0 ) off -= s.count;
+            
+            for( int i=0; i<127; ++i )
+            {
+                INFO( "Check " << i << " " << t.scalePositionForMidiNote(i) << " " << off << " n=" << n);
+                REQUIRE( t.scalePositionForMidiNote(i) == ( i - off ) % s.count );
+            }
+        }
+    }
+        
+}
+
 int main(int argc, char **argv)
 {
     if( getenv( "LANG" ) != nullptr )
