@@ -253,16 +253,22 @@ namespace Tunings
          * Depending on your internal pitch model, one of these three methods should allow you
          * to calibrate your oscillators to the appropriate frequency based on the midi note
          * at hand.
+         *
+         * The scalePositionForMidiNote returns the space in the logical scale. Note 0 is the root.
+         * It has a maxiumum value of count-1. Note that SCL files omit the root internally and so
+         * this logical scale position is off by 1 from the index in the tones array of the Scale data.
          */
         double frequencyForMidiNote( int mn ) const;
         double frequencyForMidiNoteScaledByMidi0( int mn ) const;
         double logScaledFrequencyForMidiNote( int mn ) const;
+        int scalePositionForMidiNote( int mn ) const;
 
         // For convenience, the scale and mapping used to construct this are kept as public copies
         Scale scale;
         KeyboardMapping keyboardMapping;
-//    private:
+    private:
         std::array<double, N> ptable, lptable;
+        std::array<int, N> scalepositiontable;
     };
     
 } // namespace Tunings
