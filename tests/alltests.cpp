@@ -336,6 +336,19 @@ TEST_CASE( "Several Sample Scales" )
             REQUIRE( t.logScaledFrequencyForMidiNote( 60 + i ) ==
                      Approx( t.logScaledFrequencyForMidiNote( 60 ) + knownValues[i] ).margin( 1e-5 ) );
     }
+
+    SECTION( "Carlos Alpha (one step scale)" )
+    {
+        auto s = Tunings::readSCLFile( testFile( "carlos-alpha.scl" ) );
+        Tunings::Tuning t(s);
+        REQUIRE( s.count == 1 );
+        REQUIRE( t.logScaledFrequencyForMidiNote(60) == 5 );
+        auto diff = pow( 2.0, 78.0 / 1200.0 );
+        for( int i=30; i<80; ++i )
+        {
+            REQUIRE( t.frequencyForMidiNoteScaledByMidi0(i) * diff == Approx( t.frequencyForMidiNoteScaledByMidi0(i+1) ).margin( 1e-5 ) );
+        }
+    }
 }
 
 TEST_CASE( "Remapping frequency with non-12-length scales" )
@@ -618,6 +631,17 @@ TEST_CASE( "Built in Generators" )
                 REQUIRE( d == Approx( d0 ).margin( 1e-7 ) );
             }
         }
+    }
+
+    SECTION( "EDMN Errors" )
+    {
+        REQUIRE_THROWS_AS( Tunings::evenDivisionOfSpanByM( 0, 12 ), Tunings::TuningError );
+        REQUIRE_THROWS_AS( Tunings::evenDivisionOfSpanByM( 2, 0 ), Tunings::TuningError );
+        REQUIRE_THROWS_AS( Tunings::evenDivisionOfSpanByM( 0, 0 ), Tunings::TuningError );
+
+        REQUIRE_THROWS_AS( Tunings::evenDivisionOfSpanByM( -1, 12 ), Tunings::TuningError );
+        REQUIRE_THROWS_AS( Tunings::evenDivisionOfSpanByM( 2, -1 ), Tunings::TuningError );
+        REQUIRE_THROWS_AS( Tunings::evenDivisionOfSpanByM( -1, -1 ), Tunings::TuningError );
     }
 
     SECTION( "KBM Generator" )
