@@ -1,6 +1,4 @@
-# Surge Synth Team Tuning Library
-
-**WORK IN PROGRESS. PLEASE CHECK BACK IN A BIT**
+# Surge Synth Team Tuning Library 
 
 In [Surge](https://surge-synthesizer.github.io), we added microtuning 
 and spent a lot of time making sure our
@@ -11,7 +9,7 @@ But we realized we could make the functions available as standalone C++ header
 only library and get three benefits.
 
 1. Share more code between Surge and our Dexed fork
-2. Make the code available to other soft synths where we or others may add microtuning
+2. Make the code available to other soft synths where we or others may add microtuning like our tuning workbench synth 
 3. Have a set of standalone comand line utilities and well documented tests 
 
 So we took the code and re-factored it here under an MIT license.
