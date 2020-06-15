@@ -87,7 +87,7 @@ namespace Tunings
             rawOSS << line << "\n";
             lineno ++;
 
-            if (line[0] == '!')
+            if (line.empty() || line[0] == '!')
             {
                 continue;
             }
@@ -99,6 +99,10 @@ namespace Tunings
                 break;
             case read_count:
                 res.count = atoi(line.c_str());
+                if (res.count < 1)
+                {
+                    throw TuningError( "Invalid SCL note count." );
+                }
                 state = read_note;
                 break;
             case read_note:
@@ -223,7 +227,7 @@ namespace Tunings
         {
             rawOSS << line << "\n";
             lineno ++;
-            if (line[0] == '!')
+            if (line.empty() || line[0] == '!')
             {
                 continue;
             }
