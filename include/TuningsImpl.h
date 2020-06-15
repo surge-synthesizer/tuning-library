@@ -365,7 +365,7 @@ namespace Tunings
             while( scalePositionOfTuningNote < 0 )
             {
                 scalePositionOfTuningNote += s.count;
-                tshift += dt;;
+                tshift += dt;
             }
             while( scalePositionOfTuningNote > s.count )
             {
