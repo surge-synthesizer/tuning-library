@@ -73,7 +73,7 @@ namespace Tunings
         return t;
     }
     
-    inline Scale scaleFromStream(std::istream &inf)
+    inline Scale readSCLStream(std::istream &inf)
     {
         std::string line;
         const int read_header = 0, read_count = 1, read_note = 2, trailing = 3;
@@ -141,7 +141,7 @@ namespace Tunings
             throw TuningError(s);
         }
 
-        auto res = scaleFromStream(inf);
+        auto res = readSCLStream(inf);
         res.name = fname;
         return res;
     }
@@ -149,7 +149,7 @@ namespace Tunings
     inline Scale parseSCLData(const std::string &d)
     {
         std::istringstream iss(d);
-        auto res = scaleFromStream(iss);
+        auto res = readSCLStream(iss);
         res.name = "Scale from Patch";
         return res;
     }
@@ -201,7 +201,7 @@ namespace Tunings
         return parseSCLData( oss.str() );
     }
     
-    inline KeyboardMapping keyboardMappingFromStream(std::istream &inf)
+    inline KeyboardMapping readKBMStream(std::istream &inf)
     {
         std::string line;
         
@@ -318,7 +318,7 @@ namespace Tunings
             throw TuningError(s);
         }
         
-        auto res = keyboardMappingFromStream(inf);
+        auto res = readKBMStream(inf);
         res.name = fname;
         return res;
     }
@@ -326,7 +326,7 @@ namespace Tunings
     inline KeyboardMapping parseKBMData(const std::string &d)
     {
         std::istringstream iss(d);
-        auto res = keyboardMappingFromStream(iss);
+        auto res = readKBMStream(iss);
         res.name = "Mapping from Patch";
         return res;
     }
