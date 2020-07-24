@@ -154,6 +154,11 @@ namespace Tunings
     };
 
     /**
+     * readSCLStream returns a Scale from the SCL input stream
+     */
+    Scale readSCLStream(std::istream &inf);
+
+    /**
      * readSCLFile returns a Scale from the SCL File in fname
      */
     Scale readSCLFile(std::string fname);
@@ -175,7 +180,12 @@ namespace Tunings
      * should be the evenTemperament12NoteScale
      */
     Scale evenDivisionOfSpanByM( int Span, int M );
-    
+
+    /**
+     * readKBMStream returns a KeyboardMapping from a KBM input stream
+     */
+    KeyboardMapping readKBMStream(std::istream &inf);
+
     /**
      * readKBMFile returns a KeyboardMapping from a KBM file name
      */
