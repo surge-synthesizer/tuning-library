@@ -582,7 +582,7 @@ TEST_CASE( "Built in Generators" )
         Tunings::Tuning ut;
         Tunings::Tuning t(s);
         for( int i=0;i<128;++i )
-            REQUIRE( t.logScaledFrequencyForMidiNote(i) == ut.logScaledFrequencyForMidiNote(i) );
+            REQUIRE( t.logScaledFrequencyForMidiNote(i) == Approx( ut.logScaledFrequencyForMidiNote(i) ).margin( 1e-6 ));
     }
 
     SECTION( "ED3-17" )
