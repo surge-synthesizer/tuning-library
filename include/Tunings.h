@@ -203,7 +203,7 @@ namespace Tunings
     KeyboardMapping tuneA69To(double freq);
 
     /**
-     * tuneNoteTo creates a KeyboardMapping which keeps the midi note given is set
+     * tuneNoteTo creates a KeyboardMapping, where the midi note given is set
      * to a constant frequency, given
      */
     KeyboardMapping tuneNoteTo(int midiNote, double freq);
