@@ -574,6 +574,14 @@ TEST_CASE( "Exceptions and Bad Files" )
 
 TEST_CASE( "Built in Generators" )
 {
+    SECTION( "Base note freq for default KBM" )
+    {
+        auto s = Tunings::readSCLFile( testFile( "6-exact.scl" ));
+        REQUIRE( s.count == 6 );
+        Tunings::Tuning t(s);
+        REQUIRE( t.frequencyForMidiNote(60) == 32 * Tunings::MIDI_0_FREQ);
+    }
+
     SECTION( "ED2" )
     {
         auto s = Tunings::evenDivisionOfSpanByM( 2, 12 );
@@ -582,7 +590,7 @@ TEST_CASE( "Built in Generators" )
         Tunings::Tuning ut;
         Tunings::Tuning t(s);
         for( int i=0;i<128;++i )
-            REQUIRE( t.logScaledFrequencyForMidiNote(i) == Approx( ut.logScaledFrequencyForMidiNote(i) ).margin( 1e-6 ));
+            REQUIRE( t.logScaledFrequencyForMidiNote(i) == ut.logScaledFrequencyForMidiNote(i) );
     }
 
     SECTION( "ED3-17" )

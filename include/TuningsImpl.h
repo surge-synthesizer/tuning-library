@@ -331,8 +331,8 @@ namespace Tunings
         return res;
     }
     
-    inline Tuning::Tuning() : Tuning( evenTemperament12NoteScale(), tuneA69To(440.) ) { }
-    inline Tuning::Tuning(const Scale &s ) : Tuning( s, KeyboardMapping() ) {}
+    inline Tuning::Tuning() : Tuning( evenTemperament12NoteScale(), tuneNoteTo( 60, MIDI_0_FREQ * 32.0 ) ) { }
+    inline Tuning::Tuning(const Scale &s ) : Tuning( s, tuneNoteTo( 60, MIDI_0_FREQ * 32.0 )) {}
     inline Tuning::Tuning(const KeyboardMapping &k ) : Tuning( evenTemperament12NoteScale(), k ) {}
     
     inline Tuning::Tuning(const Scale& s, const KeyboardMapping &k)
