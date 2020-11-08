@@ -771,6 +771,7 @@ TEST_CASE( "Scale Position" )
                 for( auto p : maps )
                     if( i % 12 == p.first )
                         expected = p.second;
+                INFO( "Checking SPN at " << i << " " << expected << " " << spn );
                 REQUIRE( spn == expected );
             }
         }
@@ -833,6 +834,82 @@ TEST_CASE( "Scale Position" )
         }
     }
         
+}
+
+TEST_CASE( "Default KBM Constructor has Right Base" )
+{
+    SECTION( "All Scales with Default KBM" )
+    {
+        for( auto scl : testSCLs() )
+        {
+            INFO( "Loading SCL " << scl );
+            auto s = Tunings::readSCLFile( testFile( scl ) );
+            Tunings::Tuning t( s );
+            REQUIRE( t.frequencyForMidiNoteScaledByMidi0(60) == 32 );
+        }
+    }
+}
+
+TEST_CASE( "Different KBM period from Scale period" )
+{
+    SECTION( "31Edo with mean tone mapping" )
+    {
+        /*
+         * Even though we have a 31 note octave we have  12 key mapping.
+         */
+        auto s = Tunings::readSCLFile( testFile( "31edo.scl" ) );
+        auto k = Tunings::readKBMFile( testFile( "31edo_meantone.kbm" ) );
+
+        Tunings::Tuning t( s, k );
+        REQUIRE( t.frequencyForMidiNote( 69 ) == Approx( 440.0 ) );
+        REQUIRE( t.frequencyForMidiNote( 69 + 12 ) == Approx( 880.0 ) );
+    }
+
+    SECTION( "Perfect 5th UnMapped" )
+    {
+        auto s = Tunings::readSCLFile( testFile( "12-ET-P5.scl" ) );
+        Tunings::Tuning t(s);
+        for( int i=60-36; i < 127; i += 12 )
+        {
+            INFO( "Checking perfect 5th at " << i );
+            auto f = t.frequencyForMidiNote(i);
+            auto f5 = t.frequencyForMidiNote(i+7);
+            REQUIRE( f5 == Approx( f * 1.5 ).margin( 1e-6 ) );
+        }
+    }
+
+    SECTION( "Perfect 5th 07 mapping" )
+    {
+        auto s = Tunings::readSCLFile( testFile( "12-ET-P5.scl" ) );
+        auto k = Tunings::readKBMFile( testFile( "mapping-n60-fifths.kbm" ) );
+        Tunings::Tuning t(s, k);
+
+        for( int i=60; i < 70; i += 2 )
+        {
+            INFO( "Checking perfect 5th at " << i );
+            auto f = t.frequencyForMidiNote(i);
+            auto f5 = t.frequencyForMidiNote(i+1);
+            REQUIRE( f5 == Approx( f * 1.5 ).margin( 1e-6 ) );
+        }
+    }
+
+}
+
+TEST_CASE( "KBM Constructor RawText" )
+{
+    SECTION( "KBM" )
+    {
+        auto k = Tunings::KeyboardMapping();
+        INFO( "Raw text is " << k.rawText );
+        auto kparse = Tunings::parseKBMData( k.rawText );
+        REQUIRE( k.count == kparse.count );
+        REQUIRE( k.firstMidi == kparse.firstMidi );
+        REQUIRE( k.lastMidi == kparse.lastMidi );
+        REQUIRE( k.middleNote == kparse.middleNote );
+        REQUIRE( k.tuningConstantNote == kparse.tuningConstantNote );
+        REQUIRE( k.tuningFrequency == Approx( kparse.tuningFrequency ) );
+        REQUIRE( k.octaveDegrees == kparse.octaveDegrees );
+    }
 }
 
 int main(int argc, char **argv)

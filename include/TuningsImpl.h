@@ -429,6 +429,26 @@ namespace Tunings
                     int mappingKey = distanceFromScale0 % k.count;
                     if( mappingKey < 0 )
                         mappingKey += k.count;
+                    // Now have we gone off the end
+                    int rotations = 0;
+                    int dt = distanceFromScale0;
+                    if( dt > 0 )
+                    {
+                        while( dt >= k.count )
+                        {
+                            dt -= k.count;
+                            rotations ++;
+                        }
+                    }
+                    else
+                    {
+                        while( dt < 0 )
+                        {
+                            dt += k.count;
+                            rotations --;
+                        }
+                    }
+                    
                     int cm = k.keys[mappingKey];
                     int push = 0;
                     if( cm < 0 )
@@ -439,11 +459,22 @@ namespace Tunings
                     {
                         push = mappingKey - cm;
                     }
-                    rounds = (distanceFromScale0 - push - 1) / s.count;
-                    thisRound = (distanceFromScale0 - push - 1) % s.count;
+
+                    if( k.octaveDegrees > 0 && k.octaveDegrees != k.count )
+                    {
+                        rounds = rotations;
+                        thisRound = cm-1;
+                        if( thisRound < 0 ) { thisRound = k.octaveDegrees - 1; rounds--; }
+                    }
+                    else
+                    {
+                        rounds = (distanceFromScale0 - push - 1) / s.count;
+                        thisRound = (distanceFromScale0 - push - 1) % s.count;
+                    }
+
 #ifdef DEBUG_SCALES
-                    if( i > 296 && i < 340 )
-                        std::cout << "MAPPING n=" << i - 256 << " pushes ds0=" << distanceFromScale0 << " cmc=" << k.count << " tr=" << thisRound << " r=" << rounds << " mk=" << mappingKey << " cm=" << cm << " push=" << push << " dis=" << disable << " mk-p-1=" << mappingKey - push - 1 << std::endl;
+                    if( i > 256+53 && i < 265+85 )
+                        std::cout << "MAPPING n=" << i - 256 << " pushes ds0=" << distanceFromScale0 << " cmc=" << k.count << " tr=" << thisRound << " r=" << rounds << " mk=" << mappingKey << " cm=" << cm << " push=" << push << " dis=" << disable << " mk-p-1=" << mappingKey - push - 1 << " rotations=" << rotations << " od=" << k.octaveDegrees << std::endl;
 #endif
                     
                     
@@ -508,6 +539,31 @@ namespace Tunings
     inline int Tuning::scalePositionForMidiNote( int mn ) const {
         auto mni = std::min( std::max( 0, mn + 256 ), N-1 );
         return scalepositiontable[ mni ];
+    }
+
+    inline KeyboardMapping::KeyboardMapping()
+        : count(0),
+          firstMidi(0),
+          lastMidi(127),
+          middleNote(60),
+          tuningConstantNote(60),
+          tuningFrequency(MIDI_0_FREQ * 32.0),
+          tuningPitch(32.0),
+          octaveDegrees(0),
+          rawText( "" ),
+          name( "" )
+    {
+        std::ostringstream oss;
+        oss.imbue( std::locale( "C" ) );
+        oss << "! Default KBM file\n";
+        oss << count << "\n"
+            << firstMidi << "\n"
+            << lastMidi << "\n"
+            << middleNote << "\n"
+            << tuningConstantNote << "\n"
+            << tuningFrequency << "\n"
+            << octaveDegrees << "\n";
+        rawText = oss.str();
     }
 
     inline KeyboardMapping tuneA69To(double freq)
