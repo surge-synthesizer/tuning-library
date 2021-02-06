@@ -87,7 +87,7 @@ namespace Tunings
             rawOSS << line << "\n";
             lineno ++;
 
-            if (line.empty() || line[0] == '!')
+            if ((state == read_note && line.empty()) || line[0] == '!')
             {
                 continue;
             }
@@ -227,7 +227,7 @@ namespace Tunings
         {
             rawOSS << line << "\n";
             lineno ++;
-            if (line.empty() || line[0] == '!')
+            if (line[0] == '!')
             {
                 continue;
             }

@@ -55,6 +55,13 @@ TEST_CASE( "Loading tuning files" )
         // FIXME - write a lot more here obviously
     }
 
+    SECTION( "Load a 12 tone standard tuning with no description" )
+    {
+        auto s = Tunings::readSCLFile( testFile( "12-intune-nodesc.scl" ) );
+        REQUIRE( s.count == 12 );
+        // FIXME - write a lot more here obviously
+    }
+
     SECTION( "KBM File from text" )
     {
         std::ostringstream oss;
