@@ -58,7 +58,7 @@ namespace Tunings
             
             if( t.ratio_n == 0 || t.ratio_d == 0 )
             {
-                std::string s = "Invalid Tone in SCL file.";
+                std::string s = "Invalid tone in SCL file.";
                 if( lineno >= 0 )
                     s += "Line " + std::to_string(lineno) + ".";
                 s += " Line is '" + line + "'.";
@@ -117,13 +117,13 @@ namespace Tunings
 
         if( ! ( state == read_note || state == trailing ) )
         {
-            throw TuningError( "Incomplete SCL file. Found no notes section in the file" );
+            throw TuningError( "Incomplete SCL file. Found no notes section in the file." );
         }
         
         if( (int)res.tones.size() != res.count )
         {
-            std::string s = "Read fewer notes than count in file. Count=" + std::to_string( res.count )
-                + " notes array size=" + std::to_string( res.tones.size() );
+            std::string s = "Read fewer notes than count in file. Count = " + std::to_string( res.count )
+                + " notes. Array size = " + std::to_string( res.tones.size() );
             throw TuningError(s);
 
         }
@@ -150,28 +150,28 @@ namespace Tunings
     {
         std::istringstream iss(d);
         auto res = readSCLStream(iss);
-        res.name = "Scale from Patch";
+        res.name = "Scale from patch";
         return res;
     }
 
     inline Scale evenTemperament12NoteScale()
     {
-        std::string data = R"SCL(! even.scl
+        std::string data = R"SCL(! 12 Tone Equal Temperament.scl
 !
-12 note even temperament
+12 Tone Equal Temperament | ED2-12 - Equal division of harmonic 2 into 12 parts
  12
 !
- 100.0
- 200.0
- 300.0
- 400.0
- 500.0
- 600.0
- 700.0
- 800.0
- 900.0
- 1000.0
- 1100.0
+ 100.00000
+ 200.00000
+ 300.00000
+ 400.00000
+ 500.00000
+ 600.00000
+ 700.00000
+ 800.00000
+ 900.00000
+ 1000.00000
+ 1100.00000
  2/1
 )SCL";
         return parseSCLData(data);
@@ -249,7 +249,7 @@ namespace Tunings
                 }
                 if( ! validLine )
                 {
-                    throw TuningError( "Invalid line " + std::to_string( lineno ) + ". line='" + line + "'. Bad char is '" +
+                    throw TuningError( "Invalid line " + std::to_string( lineno ) + ". line='" + line + "'. Bad character is '" +
                                        badChar + "/" + std::to_string( (int)badChar ) + "'" );
                 }
             }
@@ -295,7 +295,7 @@ namespace Tunings
 
         if( ! ( state == keys || state == trailing ) )
         {
-            throw TuningError( "Incomplete KBM file. Ubable to get to keys section of file" );
+            throw TuningError( "Incomplete KBM file. Ubable to get to keys section of file." );
         }
 
         if( (int)res.keys.size() != res.count )
@@ -327,7 +327,7 @@ namespace Tunings
     {
         std::istringstream iss(d);
         auto res = readKBMStream(iss);
-        res.name = "Mapping from Patch";
+        res.name = "Mapping from patch";
         return res;
     }
     
@@ -580,19 +580,19 @@ namespace Tunings
     {
         std::ostringstream oss;
         oss.imbue( std::locale( "C" ) );
-        oss << "! Automatically generated mapping, tuning note " << midiNote << " to " << freq << " hz\n"
+        oss << "! Automatically generated mapping, tuning note " << midiNote << " to " << freq << " Hz\n"
             << "!\n"
-            << "! Size of Map\n"
+            << "! Size of map\n"
             << 0 << "\n"
-            << "! First and Last Midi Notes to map - map the entire keyboard\n"
+            << "! First and last MIDI notes to map - map the entire keyboard\n"
             << 0 << "\n" << 127 << "\n"
             << "! Middle note where the first entry in the scale is mapped.\n"
             << scaleStart << "\n"
-            << "! Reference not where frequency is fixed\n"
+            << "! Reference note where frequency is fixed\n"
             << midiNote << "\n"
-            << "! Frequency for midi note " << midiNote << "\n"
+            << "! Frequency for MIDI note " << midiNote << "\n"
             << freq << "\n"
-            << "! Scale degree for formal octave. This is am empty mapping so:\n"
+            << "! Scale degree for formal octave. This is am empty mapping, so:\n"
             << 0 << "\n"
             << "! Mapping. This is an empty mapping so list no keys\n";
         
