@@ -43,8 +43,9 @@ namespace Tunings
                     }
                     return is;
                 case EOF:
+                    is.setstate(std::ios::eofbit);
                     if (t.empty()) {
-                        is.setstate(std::ios::eofbit);
+                        is.setstate(std::ios::badbit);
                     }
                     return is;
                 default:
