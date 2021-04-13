@@ -27,7 +27,8 @@ std::vector<std::string> testSCLs() {
             "marvel12.scl" ,
             "zeus22.scl",
             "ED4-17.scl",
-            "ED3-17.scl"
+            "ED3-17.scl",
+            "31edo_dos_lineends.scl"
         } }; 
     return res;
         
@@ -673,10 +674,29 @@ TEST_CASE( "Dos Line Endings and Blanks" )
     {
         REQUIRE_NOTHROW( Tunings::readSCLFile( testFile( "12-intune-dosle.scl" ) ) );
     }
+
+    SECTION( "Properly read a file with DOS line endings" )
+    {
+        auto s = Tunings::readSCLFile(testFile( "31edo_dos_lineends.scl" ));
+        REQUIRE( s.count == 31 );
+        INFO( "If coded with std::getline this will contain a \\r on unixes")
+        REQUIRE( s.description == "31 equal divisions of octave" );
+
+        // the parsing should ive the same floatvalues independent of crlf status obviously
+        auto q = Tunings::readSCLFile( testFile( "31edo.scl" ));
+        for( int i=0; i<q.count; ++i )
+        {
+            REQUIRE( q.tones[i].floatValue == s.tones[i].floatValue );
+        }
+    }
+
     SECTION( "KBM" )
     {
         REQUIRE_NOTHROW( Tunings::readKBMFile( testFile( "empty-note69-dosle.kbm" ) ) );
+        auto k = Tunings::readKBMFile( testFile( "empty-note69-dosle.kbm" ) );
+        REQUIRE( k.tuningConstantNote == 69 );
     }
+
     SECTION( "Blank SCL" )
     {
         REQUIRE_THROWS_AS( Tunings::parseSCLData( "" ), Tunings::TuningError );

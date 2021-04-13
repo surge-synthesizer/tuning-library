@@ -23,6 +23,37 @@
 
 namespace Tunings
 {
+    // Thank you to: https://gist.github.com/josephwb/df09e3a71679461fc104
+    inline std::istream& getlineEndingIndependent(std::istream &is,
+                                                std::string &t)
+    {
+        t.clear();
+
+        std::istream::sentry se(is, true);
+        std::streambuf *sb = is.rdbuf();
+
+        for (;;) {
+            int c = sb->sbumpc();
+            switch (c) {
+                case '\n':
+                    return is;
+                case '\r':
+                    if (sb->sgetc() == '\n') {
+                        sb->sbumpc();
+                    }
+                    return is;
+                case EOF:
+                    if (t.empty()) {
+                        is.setstate(std::ios::eofbit);
+                    }
+                    return is;
+                default:
+                    t += (char)c;
+            }
+        }
+    }
+
+
     inline double locale_atof(const char* s)
     {
         double result = 0;
@@ -82,7 +113,7 @@ namespace Tunings
         Scale res;
         std::ostringstream rawOSS;
         int lineno = 0;
-        while (std::getline(inf, line))
+        while (getlineEndingIndependent(inf, line))
         {
             rawOSS << line << "\n";
             lineno ++;
@@ -223,7 +254,7 @@ namespace Tunings
         parsePosition state = map_size;
 
         int lineno  = 0;
-        while (std::getline(inf, line))
+        while (getlineEndingIndependent(inf, line))
         {
             rawOSS << line << "\n";
             lineno ++;
