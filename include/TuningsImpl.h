@@ -374,7 +374,13 @@ namespace Tunings
 
         if( s.count <= 0 )
             throw TuningError( "Unable to tune to a scale with no notes. Your scale provided " + std::to_string( s.count ) + " notes." );
-            
+
+        // From the KBM Spec: When not all scale degrees need to be mapped, the size of the map can be smaller than the size of the scale.
+        if( k.octaveDegrees > s.count )
+        {
+            throw TuningError( "Unable to apply mapping of size " + std::to_string( k.octaveDegrees ) +
+                                " to smaller scale of size " + std::to_string(s.count));
+        }
         
         double pitches[N];
 

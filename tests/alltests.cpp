@@ -218,6 +218,9 @@ TEST_CASE( "Internal Constraints between Measures" )
                 INFO( "Testing Constraints with " << fs << " " << fk );
                 auto s = Tunings::readSCLFile(testFile(fs));
                 auto k = Tunings::readKBMFile(testFile(fk));
+
+                if( k.octaveDegrees > s.count ) continue; // don't test this verion; trap it below as an error case
+
                 Tunings::Tuning t(s,k);
                 
                 for( int i=0; i<127; ++i )
@@ -251,6 +254,9 @@ TEST_CASE( "Internal Constraints between Measures" )
                     INFO( "Testing Constraints with " << fs << " " << fk );
                     auto s = Tunings::readSCLFile(testFile(fs));
                     auto k = Tunings::readKBMFile(testFile(fk));
+
+                    if( k.octaveDegrees > s.count ) continue; // don't test this verion; trap it below as an error case
+
                     Tunings::Tuning t(s,k);
                     
                     for( int i=0; i<127; ++i )
@@ -556,6 +562,23 @@ TEST_CASE( "Exceptions and Bad Files" )
         {
             REQUIRE( std::string( e.what() ) == "Unable to open file 'MISSING'" );
         }
+    }
+
+    SECTION( "Mappings bigger than Scales Throw" )
+    {
+        bool testedAtLeastOne = false;
+        for (auto fs: testSCLs())
+            for (auto fk : testKBMs()) {
+                INFO("Looking for mis-sized pairs " << fs << " " << fk);
+                auto s = Tunings::readSCLFile(testFile(fs));
+                auto k = Tunings::readKBMFile(testFile(fk));
+
+                if (k.octaveDegrees <= s.count) continue;
+
+                testedAtLeastOne = true;
+                REQUIRE_THROWS_AS(Tunings::Tuning(s, k), Tunings::TuningError);
+            }
+        REQUIRE( testedAtLeastOne );
     }
 
     SECTION( "Bad SCL" )
