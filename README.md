@@ -49,6 +49,10 @@ case it dumps the frequency table for that .scl file with midi note 60 being the
 scale start tuned to 261hz, or it takes an .scl and .kbm file, in which case it
 prints the entire internal tuning table for the combination.
 
+## Related Projects
+
+Github user @chinenual has ported this library to `go` here: https://github.com/chinenual/go-scala/
+
 ## Bugs, Problems, etc
 
 If you find bugs, please open a github issue and we will fix it right away!
