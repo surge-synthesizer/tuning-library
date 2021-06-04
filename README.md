@@ -26,21 +26,25 @@ to use it in your project but our approach is generally:
 2. Add the "include/" directory to your compiler include path
 3. `#include "Tunings.h"`
 
+If you use cmake you can also do
+
+```cmake
+add_subdirectory(this/library EXCLUDE_FROM_ALL)
+```
+
+and then add the target `tuning-library` as a library target to your project.
+
 The code is organized such that Tunings.h is the API and TuningsImpl.h is the header with more 
 involved implementation bodies. Tunings.h includes TuningsImpl.h automatically.
 
 ## Building the comand line tools and test suite
 
-Building the command line tools is really simple. 
-
-1. Start a terminal
-2. Type `make`
-
-That's it! Now, for make to work, you need a unix-like environment on windows.
-We followed exactly the VCV Rack dev setup and uses mysys, but really anything
-which has a working g++ in your path will be fine.
-
-The build ejects two assets. `alltests` which runs all the tests and `showmapping`
+```shell
+cmake -Bbuild
+cmake --build build --target run-all-tests
+cmake --build build --target showmapping
+cmake --build build --target parsecheck
+```
 
 ## Using the showmapping command
 
@@ -48,6 +52,11 @@ The build ejects two assets. `alltests` which runs all the tests and `showmappin
 case it dumps the frequency table for that .scl file with midi note 60 being the
 scale start tuned to 261hz, or it takes an .scl and .kbm file, in which case it
 prints the entire internal tuning table for the combination.
+
+## Using the parsecheck command
+
+`parsecheck` takes a list of files and tries to parse them showing errors if it 
+fails. `parsecheck test/data/*scl` will test that all those SCL parse.
 
 ## Related Projects
 
