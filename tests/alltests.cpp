@@ -524,6 +524,20 @@ TEST_CASE( "KBMs with Gaps" )
     }
 }
 
+TEST_CASE( "Scala KBMs from Issue 42" )
+{
+    SECTION( "Piano.kbm" )
+    {
+        auto k = Tunings::readKBMFile(testFile( "piano.kbm" ));
+        REQUIRE( k.count == 0 );
+    }
+
+    SECTION( "128.kbm" )
+    {
+        auto k = Tunings::readKBMFile(testFile( "128.kbm" ));
+        REQUIRE( k.count == 0 );
+    }
+}
 TEST_CASE( "KBM ReOrdering" )
 {
     SECTION( "Non Monotonic KBM note" )
