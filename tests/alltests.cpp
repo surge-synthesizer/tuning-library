@@ -576,6 +576,14 @@ TEST_CASE( "Exceptions and Bad Files" )
         {
             REQUIRE( std::string( e.what() ) == "Unable to open file 'MISSING'" );
         }
+
+        try {
+            Tunings::readKBMFile( "MISSING" );
+        }
+        catch( const Tunings::TuningError &e )
+        {
+            REQUIRE( std::string( e.what() ) == "Unable to open file 'MISSING'");
+        }
     }
 
     SECTION( "Mappings bigger than Scales Throw" )
@@ -614,6 +622,40 @@ TEST_CASE( "Exceptions and Bad Files" )
         REQUIRE_NOTHROW( Tunings::readKBMFile( testFile( "bad/empty-extra.kbm" ) ) );
         REQUIRE_NOTHROW( Tunings::readKBMFile( testFile( "bad/extraline-long.kbm" ) ) );
         REQUIRE_THROWS_AS( Tunings::readKBMFile( testFile( "bad/missing-note.kbm" ) ), Tunings::TuningError );
+    }
+
+    SECTION ("Bad SCL Data" )
+    {
+        REQUIRE_THROWS_AS( Tunings::parseSCLData(""), Tunings::TuningError );
+
+        try {
+            Tunings::parseSCLData( "" );
+            REQUIRE( false );
+        }
+        catch( const Tunings::TuningError &e )
+        {
+            auto s = std::string(e.what());
+            INFO(s);
+            REQUIRE( s.find( "Incomplete SCL") != std::string::npos );
+            REQUIRE( s.find( "Only able to read 0 lines" ) != std::string::npos );
+        }
+    }
+
+    SECTION( "Bad KBM Data" )
+    {
+        REQUIRE_THROWS_AS( Tunings::parseKBMData(""), Tunings::TuningError );
+
+        try {
+            Tunings::parseKBMData( "" );
+            REQUIRE( false );
+        }
+        catch( const Tunings::TuningError &e )
+        {
+            auto s = std::string(e.what());
+            INFO(s);
+            REQUIRE( s.find( "Incomplete KBM") != std::string::npos );
+            REQUIRE( s.find( "Only able to read 0 lines" ) != std::string::npos );
+        }
     }
 }
 
