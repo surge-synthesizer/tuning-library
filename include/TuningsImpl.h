@@ -149,7 +149,21 @@ namespace Tunings
 
         if( ! ( state == read_note || state == trailing ) )
         {
-            throw TuningError( "Incomplete SCL file. Found no notes section in the file." );
+            std::ostringstream oss;
+            oss << "Incomplete SCL content. Only able to read " << lineno << " lines of data. Found content up to ";
+            switch (state)
+            {
+                case read_header:
+                    oss << "reading header.";
+                    break;
+                case read_count:
+                    oss << "reading scale count.";
+                    break;
+                default:
+                    oss << "unknown state.";
+                    break;
+            }
+            throw TuningError( oss.str() );
         }
         
         if( (int)res.tones.size() != res.count )
@@ -327,7 +341,36 @@ namespace Tunings
 
         if( ! ( state == keys || state == trailing ) )
         {
-            throw TuningError( "Incomplete KBM file. Unable to get to keys section of file." );
+            std::ostringstream oss;
+            oss << "Incomplete KBM stream. Only able to read " << lineno << " lines. Read up to ";
+            switch(state)
+            {
+                case map_size:
+                    oss << "map size.";
+                    break;
+                case first_midi:
+                    oss << "first midi note.";
+                    break;
+                case last_midi:
+                    oss << "last midi note.";
+                    break;
+                case middle:
+                    oss << "scale zero note.";
+                    break;
+                case reference:
+                    oss << "scale reference note.";
+                    break;
+                case freq:
+                    oss << "scale reference frequency.";
+                    break;
+                case degree:
+                    oss << "scale degree.";
+                    break;
+                default:
+                    oss << "unknown state";
+                    break;
+            }
+            throw TuningError( oss.str() );
         }
 
         if( (int)res.keys.size() != res.count )
