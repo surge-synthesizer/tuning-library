@@ -262,7 +262,7 @@ class Tuning
     double frequencyForMidiNoteScaledByMidi0(int mn) const;
     double logScaledFrequencyForMidiNote(int mn) const;
     int scalePositionForMidiNote(int mn) const;
-    bool isMidiNoteUnmapped(int mn) const;
+    bool isMidiNoteMapped(int mn) const;
 
     // For convenience, the scale and mapping used to construct this are kept as public copies
     Scale scale;
