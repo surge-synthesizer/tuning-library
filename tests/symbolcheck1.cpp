@@ -5,7 +5,8 @@
 
 #include "Tunings.h"
 
-double symbolcheck1() {
-   auto k = Tunings::tuneNoteTo( 60, 100 );
-   return k.tuningFrequency;
+double symbolcheck1()
+{
+    auto k = Tunings::tuneNoteTo(60, 100);
+    return k.tuningFrequency;
 }
