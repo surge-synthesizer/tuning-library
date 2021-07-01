@@ -1026,13 +1026,36 @@ TEST_CASE("KBM Constructor RawText")
 
 TEST_CASE("Skipped Note API")
 {
+    SECTION("Default Tuning skips Nothing")
+    {
+        auto t = Tunings::Tuning();
+        for (int i = 0; i < 128; ++i)
+            REQUIRE(t.isMidiNoteMapped(i));
+    }
+
+    SECTION("SCL-only Tuning skips Nothing")
+    {
+        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
+        auto t = Tunings::Tuning(s);
+        for (int i = 0; i < 128; ++i)
+            REQUIRE(t.isMidiNoteMapped(i));
+    }
+
+    SECTION("KBM-only Tuning absent skips skips Nothing")
+    {
+        auto k = Tunings::readKBMFile(testFile("empty-note69.kbm"));
+        auto t = Tunings::Tuning(k);
+        for (int i = 0; i < 128; ++i)
+            REQUIRE(t.isMidiNoteMapped(i));
+    }
+
     SECTION("Fully Mapped")
     {
         auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
         auto k = Tunings::readKBMFile(testFile("empty-note69.kbm"));
         auto t = Tunings::Tuning(s, k);
         for (int i = 0; i < 128; ++i)
-            REQUIRE(t.isMidiNoteUnmapped(i));
+            REQUIRE(t.isMidiNoteMapped(i));
     }
 
     SECTION("Gaps in the Maps")
@@ -1045,7 +1068,20 @@ TEST_CASE("Skipped Note API")
             int i = k % 12;
             bool isOn = i == 0 || i == 2 || i == 4 || i == 5 || i == 7 || i == 9 || i == 11;
             INFO(k << " scpos=" << i << " isOn = " << isOn);
-            REQUIRE(t.isMidiNoteUnmapped(i) == isOn);
+            REQUIRE(t.isMidiNoteMapped(i) == isOn);
+        }
+    }
+
+    SECTION("Gaps in the Maps KBM Only")
+    {
+        auto k = Tunings::readKBMFile(testFile("mapping-whitekeys-a440.kbm"));
+        auto t = Tunings::Tuning(k);
+        for (int k = 0; k < 128; ++k)
+        {
+            int i = k % 12;
+            bool isOn = i == 0 || i == 2 || i == 4 || i == 5 || i == 7 || i == 9 || i == 11;
+            INFO(k << " scpos=" << i << " isOn = " << isOn);
+            REQUIRE(t.isMidiNoteMapped(i) == isOn);
         }
     }
 
@@ -1078,7 +1114,7 @@ TEST_CASE("Skipped Note API")
             INFO("Testing monotnicity note " << k);
             int i = k % 12;
             bool isOn = i == 0 || i == 2 || i == 4 || i == 5 || i == 7 || i == 9 || i == 11;
-            REQUIRE(t.isMidiNoteUnmapped(i) == isOn);
+            REQUIRE(t.isMidiNoteMapped(i) == isOn);
 
             REQUIRE(t.logScaledFrequencyForMidiNote(k) > t.logScaledFrequencyForMidiNote(k - 1));
             REQUIRE(t.frequencyForMidiNote(k) > t.frequencyForMidiNote(k - 1));

@@ -642,7 +642,7 @@ inline int Tuning::scalePositionForMidiNote(int mn) const
     return scalepositiontable[mni];
 }
 
-inline bool Tuning::isMidiNoteUnmapped(int mn) const
+inline bool Tuning::isMidiNoteMapped(int mn) const
 {
     auto mni = std::min(std::max(0, mn + 256), N - 1);
     return scalepositiontable[mni] >= 0;
