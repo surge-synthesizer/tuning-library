@@ -1018,6 +1018,66 @@ TEST_CASE( "KBM Constructor RawText" )
     }
 }
 
+
+TEST_CASE( "Skipped Note API" )
+{
+    SECTION( "Fully Mapped" )
+    {
+        auto s = Tunings::readSCLFile( testFile( "12-intune.scl" ) );
+        auto k = Tunings::readKBMFile( testFile( "empty-note69.kbm" ));
+        auto t = Tunings::Tuning(s,k);
+        for( int i=0; i<128; ++i )
+            REQUIRE( t.isMidiNoteUnmapped(i));
+    }
+
+    SECTION( "Gaps in the Maps" )
+    {
+        auto s = Tunings::readSCLFile( testFile( "12-intune.scl" ) );
+        auto k = Tunings::readKBMFile( testFile( "mapping-whitekeys-a440.kbm" ));
+        auto t = Tunings::Tuning(s,k);
+        for( int k=0; k<128; ++k ) {
+            int i = k % 12;
+            bool isOn = i == 0 || i == 2 || i == 4 || i == 5 || i == 7 || i == 9 || i == 11;
+            INFO( k << " scpos=" << i << " isOn = " << isOn );
+            REQUIRE(t.isMidiNoteUnmapped(i) == isOn);
+        }
+    }
+
+    SECTION( "Tuning with Gaps" )
+    {
+        auto s = Tunings::readSCLFile( testFile( "12-intune.scl" ) );
+        auto k = Tunings::readKBMFile( testFile( "mapping-whitekeys-a440.kbm" ));
+        auto t = Tunings::Tuning(s,k);
+        for( int k=2; k<128; ++k ) {
+            int i = k % 12;
+            bool isOn = i == 0 || i == 2 || i == 4 || i == 5 || i == 7 || i == 9 || i == 11;
+            int priorOn = ( i == 0 || i == 5 ) ? 1 : 2;
+            INFO( k << " scpos=" << i << " isOn = " << isOn << " priorOn " << priorOn );
+
+            if (isOn)
+                REQUIRE(t.logScaledFrequencyForMidiNote(k) > t.logScaledFrequencyForMidiNote(k-priorOn));
+        }
+    }
+
+    SECTION( "Tuning with Gaps and Interpolation" )
+    {
+        auto s = Tunings::readSCLFile( testFile( "12-intune.scl" ) );
+        auto k = Tunings::readKBMFile( testFile( "mapping-whitekeys-a440.kbm" ));
+        auto t = Tunings::Tuning(s,k).withSkippedNotesInterpolated();
+        for( int k=2; k<128; ++k ) {
+            // Now we have filled in, all the APIs should be monotonic
+            INFO( "Testing monotnicity note " << k );
+            int i = k % 12;
+            bool isOn = i == 0 || i == 2 || i == 4 || i == 5 || i == 7 || i == 9 || i == 11;
+            REQUIRE(t.isMidiNoteUnmapped(i) == isOn);
+
+            REQUIRE(t.logScaledFrequencyForMidiNote(k) > t.logScaledFrequencyForMidiNote(k-1));
+            REQUIRE(t.frequencyForMidiNote(k) > t.frequencyForMidiNote(k-1));
+            REQUIRE(t.frequencyForMidiNoteScaledByMidi0(k) > t.frequencyForMidiNoteScaledByMidi0(k-1));
+        }
+    }
+}
+
 int main(int argc, char **argv)
 {
     if( getenv( "LANG" ) != nullptr )
@@ -1046,4 +1106,3 @@ int main(int argc, char **argv)
     int result = Catch::Session().run( argc, argv );
     return result;
 }
-
