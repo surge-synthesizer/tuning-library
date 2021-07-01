@@ -229,6 +229,14 @@ namespace Tunings
         Tuning( const KeyboardMapping &k );
         Tuning( const Scale &s, const KeyboardMapping &k );
 
+        /*
+         * Skipped notes can either have nonsense values or interpolated values.
+         * The old API made the bad choice to have nonsense values which we retain
+         * for compatability, but this method will return a new tuning with correctly
+         * interpolated skipped notes.
+         */
+        Tuning withSkippedNotesInterpolated() const;
+
         /**
          * These three related functions provide you the information you
          * need to use this tuning.
@@ -260,6 +268,7 @@ namespace Tunings
         double frequencyForMidiNoteScaledByMidi0( int mn ) const;
         double logScaledFrequencyForMidiNote( int mn ) const;
         int scalePositionForMidiNote( int mn ) const;
+        bool isMidiNoteUnmapped(int mn) const;
 
         // For convenience, the scale and mapping used to construct this are kept as public copies
         Scale scale;

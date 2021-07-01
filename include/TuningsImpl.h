@@ -622,6 +622,30 @@ namespace Tunings
         return scalepositiontable[ mni ];
     }
 
+    inline bool Tuning::isMidiNoteUnmapped(int mn) const {
+        auto mni = std::min( std::max( 0, mn + 256 ), N-1 );
+        return scalepositiontable[mni] >= 0;
+    }
+
+    inline Tuning Tuning::withSkippedNotesInterpolated() const {
+        Tuning res = *this;
+        for (int i=1; i<N-1; ++i)
+        {
+            if (scalepositiontable[i] < 0)
+            {
+                int nxt = i+1;
+                int prv = i-1;
+                while( prv >= 0 && scalepositiontable[prv] < 0 ) prv--;
+                while( nxt < N && scalepositiontable[nxt] < 0 ) nxt++;
+                float dist = nxt - prv;
+                float frac = ( i - prv ) / dist;
+                res.lptable[i] = (1.0-frac) * lptable[prv] + frac * lptable[nxt];
+                res.ptable[i] = pow( 2.0, res.lptable[i] );
+            }
+        }
+        return res;
+    }
+
     inline KeyboardMapping::KeyboardMapping()
         : count(0),
           firstMidi(0),
