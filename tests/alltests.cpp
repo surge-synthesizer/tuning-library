@@ -1068,7 +1068,7 @@ TEST_CASE("Skipped Note API")
             int i = k % 12;
             bool isOn = i == 0 || i == 2 || i == 4 || i == 5 || i == 7 || i == 9 || i == 11;
             INFO(k << " scpos=" << i << " isOn = " << isOn);
-            REQUIRE(t.isMidiNoteMapped(i) == isOn);
+            REQUIRE(t.isMidiNoteMapped(k) == isOn);
         }
     }
 
@@ -1081,7 +1081,7 @@ TEST_CASE("Skipped Note API")
             int i = k % 12;
             bool isOn = i == 0 || i == 2 || i == 4 || i == 5 || i == 7 || i == 9 || i == 11;
             INFO(k << " scpos=" << i << " isOn = " << isOn);
-            REQUIRE(t.isMidiNoteMapped(i) == isOn);
+            REQUIRE(t.isMidiNoteMapped(k) == isOn);
         }
     }
 
@@ -1114,7 +1114,7 @@ TEST_CASE("Skipped Note API")
             INFO("Testing monotnicity note " << k);
             int i = k % 12;
             bool isOn = i == 0 || i == 2 || i == 4 || i == 5 || i == 7 || i == 9 || i == 11;
-            REQUIRE(t.isMidiNoteMapped(i) == isOn);
+            REQUIRE(t.isMidiNoteMapped(k) == isOn);
 
             REQUIRE(t.logScaledFrequencyForMidiNote(k) > t.logScaledFrequencyForMidiNote(k - 1));
             REQUIRE(t.frequencyForMidiNote(k) > t.frequencyForMidiNote(k - 1));
