@@ -1,3 +1,4 @@
+#include <cstring>
 #include <iomanip>
 #include "Tunings.h"
 #include "TuningsImpl.h"
