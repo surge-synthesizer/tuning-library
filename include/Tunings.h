@@ -63,6 +63,8 @@ struct Tone
     std::string stringRep;
     double floatValue; // cents / 1200 + 1.
 
+    int lineno; // which line of the SCL does this tone appear on?
+
     Tone() : type(kToneRatio), cents(0), ratio_d(1), ratio_n(1), stringRep("1/1"), floatValue(1.0)
     {
     }
