@@ -70,6 +70,7 @@ inline Tone toneFromString(const std::string &line, int lineno)
 {
     Tone t;
     t.stringRep = line;
+    t.lineno = lineno;
     if (line.find(".") != std::string::npos)
     {
         t.type = Tone::kToneCents;
