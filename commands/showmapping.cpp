@@ -21,7 +21,7 @@ int main( int argc, char **argv )
         k = readKBMFile(argv[2] );
     }
 
-    Tuning t(s, k);
+    auto t = Tuning(s, k).withSkippedNotesInterpolated();
     std::cout << "Note ,"
               << " Freq (Hz) , "
               << "  ScaledFrq , "
@@ -29,10 +29,17 @@ int main( int argc, char **argv )
        
     for( int i=0; i<128; ++i )
     {
-        std::cout << std::setw(4) << i << ", "
-                  << std::setw(10) << std::setprecision(10) << std::fixed << t.frequencyForMidiNote(i) << ", "
-                  << std::setw(10) << std::setprecision(10) << std::fixed << t.frequencyForMidiNoteScaledByMidi0(i) << ", "
-                  << std::setw(10) << std::setprecision(10) << std::fixed << t.logScaledFrequencyForMidiNote(i) << std::endl;
+        if (t.isMidiNoteMapped(i))
+        {
+            std::cout << std::setw(4) << i << ", "
+                      << std::setw(10) << std::setprecision(10) << std::fixed << t.frequencyForMidiNote(i) << ", "
+                      << std::setw(10) << std::setprecision(10) << std::fixed << t.frequencyForMidiNoteScaledByMidi0(i) << ", "
+                      << std::setw(10) << std::setprecision(10) << std::fixed << t.logScaledFrequencyForMidiNote(i) << std::endl;
+        }
+        else
+        {
+            std::cout << std::setw(4) << i << "  [unmapped]" << std::endl;
+        }
     }
     
 }
