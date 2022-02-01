@@ -1124,6 +1124,47 @@ TEST_CASE("Skipped Note API")
     }
 }
 
+TEST_CASE("Skipped Note and Root" )
+{
+    SECTION("Tuning from 60 works")
+    {
+        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
+        auto k = Tunings::readKBMFile(testFile("mapping-whitekeys-a440.kbm"));
+        auto t = Tunings::Tuning(s, k);
+        REQUIRE(t.isMidiNoteMapped(60));
+        REQUIRE(t.isMidiNoteMapped(69));
+        REQUIRE(t.frequencyForMidiNote(69) == Approx(440.0).margin(0.01));
+    }
+
+    SECTION("Tuning from 59 throws")
+    {
+        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
+        auto k = Tunings::readKBMFile(testFile("mapping-whitekeys-from-59-a440.kbm"));
+        REQUIRE_THROWS(Tunings::Tuning(s, k));
+    }
+
+    SECTION("Tuning from 48 works")
+    {
+        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
+        auto k = Tunings::readKBMFile(testFile("mapping-whitekeys-from-48-a440.kbm"));
+        auto t = Tunings::Tuning(s, k);
+        REQUIRE(t.isMidiNoteMapped(60));
+        REQUIRE(t.isMidiNoteMapped(69));
+        REQUIRE(t.frequencyForMidiNote(69) == Approx(440.0).margin(0.01));
+    }
+
+    SECTION("Tuning from 48 works with Interpolation")
+    {
+        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
+        auto k = Tunings::readKBMFile(testFile("mapping-whitekeys-from-48-a440.kbm"));
+        auto t = Tunings::Tuning(s, k);
+        t = t.withSkippedNotesInterpolated();
+        REQUIRE(t.isMidiNoteMapped(60));
+        REQUIRE(t.isMidiNoteMapped(69));
+        REQUIRE(t.frequencyForMidiNote(69) == Approx(440.0).margin(0.01));
+    }
+}
+
 int main(int argc, char **argv)
 {
     if (getenv("LANG") != nullptr)

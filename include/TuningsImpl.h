@@ -448,8 +448,28 @@ inline Tuning::Tuning(const Scale &s, const KeyboardMapping &k)
 
     int scalePositionOfTuningNote = k.tuningConstantNote - k.middleNote;
     if (k.count > 0)
+    {
+        while (scalePositionOfTuningNote >= k.count)
+        {
+            scalePositionOfTuningNote -= k.count;
+        }
+        while (scalePositionOfTuningNote < 0)
+        {
+            scalePositionOfTuningNote += k.count;
+        }
+        auto oSP = scalePositionOfTuningNote;
         scalePositionOfTuningNote = k.keys[scalePositionOfTuningNote];
-
+        if (scalePositionOfTuningNote == -1)
+        {
+            std::string s = "Keyboard mapping is tuning an unmapped key. ";
+            s += "Your tuning mapping is mapping key " + std::to_string(k.tuningConstantNote) +
+                 " as " + "the tuning constant note, but that is scale note " +
+                 std::to_string(oSP) + " given your scale root of " + std::to_string(k.middleNote) +
+                 " which your mapping does not assign. Please set your tuning constant "
+                 "note to a mapped key.";
+            throw TuningError(s);
+        }
+    }
     double tuningCenterPitchOffset;
     if (scalePositionOfTuningNote == 0)
         tuningCenterPitchOffset = 0;
@@ -486,6 +506,26 @@ inline Tuning::Tuning(const Scale &s, const KeyboardMapping &k)
             pitches[i] = 1;
             lptable[i] = pitches[i] + pitchMod;
             ptable[i] = pow(2.0, lptable[i]);
+
+            if (k.count > 0)
+            {
+                int mappingKey = distanceFromScale0 % k.count;
+                if (mappingKey < 0)
+                    mappingKey += k.count;
+
+                int cm = k.keys[mappingKey];
+                if (cm < 0)
+                {
+                    std::string s = "Keyboard mapping is tuning an unmapped key. ";
+                    s += "Your tuning mapping is mapping key " + std::to_string(i - 256) + " as " +
+                         "the tuning constant note, but that is scale note " +
+                         std::to_string(mappingKey) + " given your scale root of " +
+                         std::to_string(k.middleNote) +
+                         " which your mapping does not assign. Please set your tuning constant "
+                         "note to a mapped key.";
+                    throw TuningError(s);
+                }
+            }
             scalepositiontable[i] = scalePositionOfTuningNote % s.count;
 #if DEBUG_SCALES
             std::cout << "PITCH: i=" << i << " n=" << i - 256 << " p=" << pitches[i]
@@ -617,6 +657,10 @@ inline Tuning::Tuning(const Scale &s, const KeyboardMapping &k)
 #endif
         }
     }
+
+    /*
+     * Finally we may have constructed an invalid tuning
+     */
 }
 
 inline double Tuning::frequencyForMidiNote(int mn) const
@@ -662,8 +706,8 @@ inline Tuning Tuning::withSkippedNotesInterpolated() const
                 prv--;
             while (nxt < N && scalepositiontable[nxt] < 0)
                 nxt++;
-            float dist = nxt - prv;
-            float frac = (i - prv) / dist;
+            float dist = (float)(nxt - prv);
+            float frac = (float)(i - prv) / dist;
             res.lptable[i] = (1.0 - frac) * lptable[prv] + frac * lptable[nxt];
             res.ptable[i] = pow(2.0, res.lptable[i]);
         }
