@@ -252,6 +252,34 @@ inline Scale evenDivisionOfSpanByM(int Span, int M)
     return parseSCLData(oss.str());
 }
 
+inline Scale evenDivisionOfCentsByM(float Cents, int M, const std::string &lastLabel)
+{
+    if (Cents <= 0)
+        throw Tunings::TuningError("Cents should be a positive number. You entered " +
+                                   std::to_string(Cents));
+    if (M <= 0)
+        throw Tunings::TuningError(
+            "You must divide the period into at least one step. You entered " + std::to_string(M));
+
+    std::ostringstream oss;
+    oss.imbue(std::locale("C"));
+    oss << "! Automatically generated Even Division of " << Cents << " ct into " << M << " scale\n";
+    oss << "Automatically generated Even Division of " << Cents << " ct into " << M << " scale\n";
+    oss << M << "\n";
+    oss << "!\n";
+
+    double topCents = Cents;
+    double dCents = topCents / M;
+    for (int i = 1; i < M; ++i)
+        oss << std::fixed << dCents * i << "\n";
+    if (lastLabel.empty())
+        oss << Cents << "\n";
+    else
+        oss << lastLabel << "\n";
+
+    return parseSCLData(oss.str());
+}
+
 inline KeyboardMapping readKBMStream(std::istream &inf)
 {
     std::string line;

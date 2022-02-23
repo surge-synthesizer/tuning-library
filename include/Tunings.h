@@ -164,6 +164,14 @@ Scale evenTemperament12NoteScale();
 Scale evenDivisionOfSpanByM(int Span, int M);
 
 /**
+ * evenDivisionOfCentsByM provides a scale which divides Cents into M
+ * steps. It is less frequently used than evenDivisionOfSpanByM for obvious
+ * reasons. If you want the last cents label labeled differently than the cents
+ * argument, pass in the associated optional label
+ */
+Scale evenDivisionOfCentsByM(float Cents, int M, const std::string &lastLabel = "");
+
+/**
  * readKBMStream returns a KeyboardMapping from a KBM input stream
  */
 KeyboardMapping readKBMStream(std::istream &inf);
