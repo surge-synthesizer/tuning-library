@@ -1124,7 +1124,7 @@ TEST_CASE("Skipped Note API")
     }
 }
 
-TEST_CASE("Skipped Note and Root" )
+TEST_CASE("Skipped Note and Root")
 {
     SECTION("Tuning from 60 works")
     {
@@ -1141,6 +1141,25 @@ TEST_CASE("Skipped Note and Root" )
         auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
         auto k = Tunings::readKBMFile(testFile("mapping-whitekeys-from-59-a440.kbm"));
         REQUIRE_THROWS(Tunings::Tuning(s, k));
+    }
+
+    SECTION("Tuning from 59 no throw")
+    {
+        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
+        auto k = Tunings::readKBMFile(testFile("mapping-whitekeys-from-59-a440.kbm"));
+        auto t = Tunings::Tuning(s, k, true);
+        REQUIRE(t.frequencyForMidiNote(59) == Approx(246.94).margin(0.01));
+    }
+
+    SECTION("Tuning from 59 altmapping")
+    {
+        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
+        auto k = Tunings::readKBMFile(testFile("mapping-whitekeysalt-from-59-a440.kbm"));
+        REQUIRE_NOTHROW(Tunings::Tuning(s, k, true));
+        REQUIRE_THROWS(Tunings::Tuning(s, k, false));
+        REQUIRE_THROWS(Tunings::Tuning(s, k));
+        auto t = Tunings::Tuning(s, k, true);
+        REQUIRE(t.frequencyForMidiNote(59) == Approx(440.0 * pow(2.f, -(5.5 / 12))).margin(0.01));
     }
 
     SECTION("Tuning from 48 works")
