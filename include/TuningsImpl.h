@@ -450,11 +450,12 @@ inline Tuning::Tuning() : Tuning(evenTemperament12NoteScale(), KeyboardMapping()
 inline Tuning::Tuning(const Scale &s) : Tuning(s, KeyboardMapping()) {}
 inline Tuning::Tuning(const KeyboardMapping &k) : Tuning(evenTemperament12NoteScale(), k) {}
 
-inline Tuning::Tuning(const Scale &s, const KeyboardMapping &k)
+inline Tuning::Tuning(const Scale &s, const KeyboardMapping &k, bool allowTuningCenterOnUnmapped)
+    : allowTuningCenterOnUnmapped(allowTuningCenterOnUnmapped)
 {
     scale = s;
     keyboardMapping = k;
-
+    int oSP;
     if (s.count <= 0)
         throw TuningError("Unable to tune to a scale with no notes. Your scale provided " +
                           std::to_string(s.count) + " notes.");
@@ -485,9 +486,9 @@ inline Tuning::Tuning(const Scale &s, const KeyboardMapping &k)
         {
             scalePositionOfTuningNote += k.count;
         }
-        auto oSP = scalePositionOfTuningNote;
+        oSP = scalePositionOfTuningNote;
         scalePositionOfTuningNote = k.keys[scalePositionOfTuningNote];
-        if (scalePositionOfTuningNote == -1)
+        if (scalePositionOfTuningNote == -1 && !allowTuningCenterOnUnmapped)
         {
             std::string s = "Keyboard mapping is tuning an unmapped key. ";
             s += "Your tuning mapping is mapping key " + std::to_string(k.tuningConstantNote) +
@@ -503,24 +504,70 @@ inline Tuning::Tuning(const Scale &s, const KeyboardMapping &k)
         tuningCenterPitchOffset = 0;
     else
     {
-        double tshift = 0;
-        double dt = s.tones[s.count - 1].floatValue - 1.0;
-        while (scalePositionOfTuningNote < 0)
+        if (scalePositionOfTuningNote == -1 && allowTuningCenterOnUnmapped)
         {
-            scalePositionOfTuningNote += s.count;
-            tshift += dt;
-        }
-        while (scalePositionOfTuningNote > s.count)
-        {
-            scalePositionOfTuningNote -= s.count;
-            tshift -= dt;
-        }
+            int low, high;
+            bool octave_up = false;
+            bool octave_down = false;
+            float pitch_high;
+            float pitch_low;
+            // find next closest mapped note
+            for (int i = oSP - 1; i != oSP; i = (i - 1) % k.count)
+            {
+                if (k.keys[i] != -1)
+                {
+                    low = k.keys[i];
+                    break;
+                }
 
-        if (scalePositionOfTuningNote == 0)
-            tuningCenterPitchOffset = -tshift;
+                if (i > oSP)
+                {
+                    octave_down = true;
+                }
+            }
+            for (int i = oSP + 1; i != oSP; i = (i + 1) % k.count)
+            {
+                if (k.keys[i] != -1)
+                {
+                    high = k.keys[i];
+                    break;
+                }
+
+                if (i < oSP)
+                {
+                    octave_up = true;
+                }
+            }
+
+            // determine high and low pitches
+            double dt = s.tones[s.count - 1].cents;
+            pitch_low =
+                octave_down ? s.tones[low - 1].cents - dt : s.tones[low - 1].floatValue - 1.0;
+            pitch_high =
+                octave_up ? s.tones[high - 1].cents + dt : s.tones[high - 1].floatValue - 1.0;
+            tuningCenterPitchOffset = (pitch_high + pitch_low) / 2.f;
+        }
         else
-            tuningCenterPitchOffset =
-                s.tones[scalePositionOfTuningNote - 1].floatValue - 1.0 - tshift;
+        {
+            double tshift = 0;
+            double dt = s.tones[s.count - 1].floatValue - 1.0;
+            while (scalePositionOfTuningNote < 0)
+            {
+                scalePositionOfTuningNote += s.count;
+                tshift += dt;
+            }
+            while (scalePositionOfTuningNote > s.count)
+            {
+                scalePositionOfTuningNote -= s.count;
+                tshift -= dt;
+            }
+
+            if (scalePositionOfTuningNote == 0)
+                tuningCenterPitchOffset = -tshift;
+            else
+                tuningCenterPitchOffset =
+                    s.tones[scalePositionOfTuningNote - 1].floatValue - 1.0 - tshift;
+        }
     }
 
     for (int i = 0; i < N; ++i)
@@ -542,11 +589,11 @@ inline Tuning::Tuning(const Scale &s, const KeyboardMapping &k)
                     mappingKey += k.count;
 
                 int cm = k.keys[mappingKey];
-                if (cm < 0)
+                if (!allowTuningCenterOnUnmapped && cm < 0)
                 {
                     std::string s = "Keyboard mapping is tuning an unmapped key. ";
-                    s += "Your tuning mapping is mapping key " + std::to_string(i - 256) + " as " +
-                         "the tuning constant note, but that is scale note " +
+                    s += "Your tuning mapping is mapping key " + std::to_string(posPitch0 - 256) +
+                         " as " + "the tuning constant note, but that is scale note " +
                          std::to_string(mappingKey) + " given your scale root of " +
                          std::to_string(k.middleNote) +
                          " which your mapping does not assign. Please set your tuning constant "

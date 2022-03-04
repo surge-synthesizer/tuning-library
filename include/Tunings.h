@@ -230,7 +230,7 @@ class Tuning
      */
     Tuning(const Scale &s);
     Tuning(const KeyboardMapping &k);
-    Tuning(const Scale &s, const KeyboardMapping &k);
+    Tuning(const Scale &s, const KeyboardMapping &k, bool allowTuningCenterOnUnmapped = false);
 
     /*
      * Skipped notes can either have nonsense values or interpolated values.
@@ -281,6 +281,7 @@ class Tuning
   private:
     std::array<double, N> ptable, lptable;
     std::array<int, N> scalepositiontable;
+    bool allowTuningCenterOnUnmapped;
 };
 
 } // namespace Tunings
