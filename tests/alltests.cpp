@@ -822,6 +822,22 @@ TEST_CASE("Tone API")
         REQUIRE(t3.floatValue == Approx(log(3.0 / 1.0) / log(2.0) + 1.0).margin(1e-6));
     }
 
+    SECTION("Ridiculously Long Fraction Tones")
+    {
+        uint64_t top{3}, bottom{2};
+        for (auto q = 0; q < 18; ++q)
+        {
+            auto frac = std::to_string(top) + "/" + std::to_string(bottom);
+            INFO("Parsing " << frac << " at " << q);
+            auto t = Tunings::toneFromString(frac);
+            REQUIRE(t.type == Tunings::Tone::kToneRatio);
+            REQUIRE(t.ratio_n == top);
+            REQUIRE(t.ratio_d == bottom);
+            top = top * 10;
+            bottom = bottom * 10;
+        }
+    }
+
     SECTION("Error Tones")
     {
         REQUIRE_THROWS_AS(Tunings::toneFromString("Not a number"), Tunings::TuningError);

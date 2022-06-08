@@ -59,7 +59,7 @@ struct Tone
 
     Type type;
     double cents;
-    int ratio_d, ratio_n;
+    int64_t ratio_d, ratio_n;
     std::string stringRep;
     double floatValue; // cents / 1200 + 1.
 
