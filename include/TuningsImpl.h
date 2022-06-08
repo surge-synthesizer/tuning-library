@@ -82,13 +82,13 @@ inline Tone toneFromString(const std::string &line, int lineno)
         auto slashPos = line.find("/");
         if (slashPos == std::string::npos)
         {
-            t.ratio_n = atoi(line.c_str());
+            t.ratio_n = atoll(line.c_str());
             t.ratio_d = 1;
         }
         else
         {
-            t.ratio_n = atoi(line.substr(0, slashPos).c_str());
-            t.ratio_d = atoi(line.substr(slashPos + 1).c_str());
+            t.ratio_n = atoll(line.substr(0, slashPos).c_str());
+            t.ratio_d = atoll(line.substr(slashPos + 1).c_str());
         }
 
         if (t.ratio_n == 0 || t.ratio_d == 0)
