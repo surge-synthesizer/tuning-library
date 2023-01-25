@@ -20,6 +20,7 @@
 #include <math.h>
 #include <sstream>
 #include <cctype>
+#include <cmath>
 
 namespace Tunings
 {
@@ -450,15 +451,55 @@ inline Tuning::Tuning() : Tuning(evenTemperament12NoteScale(), KeyboardMapping()
 inline Tuning::Tuning(const Scale &s) : Tuning(s, KeyboardMapping()) {}
 inline Tuning::Tuning(const KeyboardMapping &k) : Tuning(evenTemperament12NoteScale(), k) {}
 
-inline Tuning::Tuning(const Scale &s, const KeyboardMapping &k, bool allowTuningCenterOnUnmapped)
-    : allowTuningCenterOnUnmapped(allowTuningCenterOnUnmapped)
+inline Tuning::Tuning(const Scale &s_, const KeyboardMapping &k_, bool allowTuningCenterOnUnmapped_)
+    : allowTuningCenterOnUnmapped(allowTuningCenterOnUnmapped_)
 {
-    scale = s;
-    keyboardMapping = k;
+    // Shadow on purpose to make sure we use the modified version from rotation - use for dev
+    // int *scale{0}, keyboardMapping{0};
+    this->scale = s_;
+    this->keyboardMapping = k_;
+
+    Scale s = s_;
+    KeyboardMapping k = k_;
     int oSP;
     if (s.count <= 0)
         throw TuningError("Unable to tune to a scale with no notes. Your scale provided " +
                           std::to_string(s.count) + " notes.");
+
+    int kbmRotations{1};
+    for (const auto &kv : k.keys)
+    {
+        kbmRotations = std::max(kbmRotations, (int)std::ceil(1.0 * kv / s.count));
+    }
+
+    if (kbmRotations > 1)
+    {
+        // This means the KBM has mapped note 5 in a 4 note scale or some such
+        // which implies an 'unwrap' operation. So what we are going to do is
+        // create a new scale which is extended then update the kbm octave position
+        // accordingly.
+        Scale newS = s;
+        newS.count = s.count * kbmRotations;
+        auto backCents = s.tones.back().cents;
+        auto pushOff = backCents;
+        for (int i = 1; i < kbmRotations; ++i)
+        {
+            for (const auto &t : s.tones)
+            {
+                auto tCopy = t;
+                tCopy.type = Tone::kToneCents;
+                tCopy.cents += pushOff;
+                tCopy.floatValue = tCopy.cents / 1200.0 + 1;
+
+                newS.tones.push_back(tCopy);
+            }
+            pushOff += backCents;
+        }
+        s = newS;
+        k.octaveDegrees *= kbmRotations;
+        if (k.octaveDegrees == 0)
+            k.octaveDegrees = s.count;
+    }
 
     // From the KBM Spec: When not all scale degrees need to be mapped, the size of the map can be
     // smaller than the size of the scale.
@@ -621,7 +662,7 @@ inline Tuning::Tuning(const Scale &s, const KeyboardMapping &k, bool allowTuning
             int rounds;
             int thisRound;
             int disable = false;
-            if ((k.count == 0))
+            if (k.count == 0)
             {
                 rounds = (distanceFromScale0 - 1) / s.count;
                 thisRound = (distanceFromScale0 - 1) % s.count;
@@ -658,6 +699,7 @@ inline Tuning::Tuning(const Scale &s, const KeyboardMapping &k, bool allowTuning
                 }
 
                 int cm = k.keys[mappingKey];
+
                 int push = 0;
                 if (cm < 0)
                 {
@@ -665,6 +707,12 @@ inline Tuning::Tuning(const Scale &s, const KeyboardMapping &k, bool allowTuning
                 }
                 else
                 {
+                    if (cm > s.count)
+                    {
+                        throw TuningError(std::string(
+                            "Mapping KBM note longer than scale; key=" + std::to_string(cm) +
+                            " scale count=" + std::to_string(s.count)));
+                    }
                     push = mappingKey - cm;
                 }
 
@@ -721,9 +769,9 @@ inline Tuning::Tuning(const Scale &s, const KeyboardMapping &k, bool allowTuning
             if (i > 296 && i < 340)
                 std::cout << "PITCH: i=" << i << " n=" << i - 256 << " ds0=" << distanceFromScale0
                           << " dp0=" << distanceFromPitch0 << " r=" << rounds << " t=" << thisRound
-                          << " p=" << pitches[i] << " t=" << s.tones[thisRound].floatValue << " "
-                          << s.tones[thisRound].cents << " dis=" << disable << " tp=" << ptable[i]
-                          << " fr=" << ptable[i] * 8.175798915 << " tcpo="
+                          << " p=" << pitches[i] << " t=" << s.tones[thisRound].floatValue
+                          << " c=" << s.tones[thisRound].cents << " dis=" << disable
+                          << " tp=" << ptable[i] << " fr=" << ptable[i] * 8.175798915 << " tcpo="
                           << tuningCenterPitchOffset
 
                           //<< " l2p=" << log(otp)/log(2.0)

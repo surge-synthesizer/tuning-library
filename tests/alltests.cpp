@@ -1200,6 +1200,66 @@ TEST_CASE("Skipped Note and Root")
     }
 }
 
+TEST_CASE("Wrapped KBMs")
+{
+    for (const auto &kbm :
+         {"empty-c-100.kbm", "fournote-c-100.kbm", "eightnote-c-100.kbm", "twelve-c-100.kbm"})
+    {
+        DYNAMIC_SECTION("Testing KBM " << kbm)
+        {
+            auto scale = Tunings::readSCLFile(testFile("kbm-fix-012023/exact4.scl"));
+            auto map = Tunings::readKBMFile(testFile(std::string("kbm-fix-012023/") + kbm));
+            auto tun = Tunings::Tuning(scale, map);
+
+            REQUIRE(tun.frequencyForMidiNote(60) == 100.0);
+            for (int i = 61; i < 76; ++i)
+            {
+                auto ni = tun.frequencyForMidiNote(i);
+                auto np = tun.frequencyForMidiNote(i - 1);
+                auto diff = i <= 64 ? 25 : (i <= 68 ? 50 : (i <= 72 ? 100 : 200));
+                REQUIRE(ni > np);
+                REQUIRE(ni - np == Approx(diff).margin(0.001));
+            }
+        }
+    }
+    DYNAMIC_SECTION("Skipper One")
+    {
+        auto scale = Tunings::readSCLFile(testFile("kbm-fix-012023/exact4.scl"));
+        auto map = Tunings::readKBMFile(testFile("kbm-fix-012023/threenote-c-100.kbm"));
+        auto tun = Tunings::Tuning(scale, map);
+        int note = 60;
+        for (const auto &v : {100.0, 125.0, 175., 200., 250., 350., 400.})
+        {
+            REQUIRE(tun.frequencyForMidiNote(note) == Approx(v).margin(0.001));
+            note++;
+        }
+    }
+    DYNAMIC_SECTION("Skipper 59")
+    {
+        auto scale = Tunings::readSCLFile(testFile("kbm-fix-012023/exact4.scl"));
+        auto map = Tunings::readKBMFile(testFile("kbm-fix-012023/threenote-c-100-from-1.kbm"));
+        auto tun = Tunings::Tuning(scale, map);
+        int note = 60;
+        for (const auto &v : {100.0, 140., 160., 200., 280., 320.})
+        {
+            REQUIRE(tun.frequencyForMidiNote(note) == Approx(v).margin(0.001));
+            note++;
+        }
+    }
+    DYNAMIC_SECTION("Skipper Long")
+    {
+        auto scale = Tunings::readSCLFile(testFile("kbm-fix-012023/exact4.scl"));
+        auto map = Tunings::readKBMFile(testFile("kbm-fix-012023/sixnote-c-100.kbm"));
+        auto tun = Tunings::Tuning(scale, map);
+        int note = 60;
+        for (const auto &v : {100.0, 125.0, 175., 200., 250., 350., 400.})
+        {
+            REQUIRE(tun.frequencyForMidiNote(note) == Approx(v).margin(0.001));
+            note++;
+        }
+    }
+}
+
 int main(int argc, char **argv)
 {
     if (getenv("LANG") != nullptr)

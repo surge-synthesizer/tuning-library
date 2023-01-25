@@ -40,7 +40,8 @@ int main(int argc, char **argv)
                           << std::setprecision(10) << std::fixed
                           << t.frequencyForMidiNoteScaledByMidi0(i) << ", " << std::setw(10)
                           << std::setprecision(10) << std::fixed
-                          << t.logScaledFrequencyForMidiNote(i) << std::endl;
+                          << t.logScaledFrequencyForMidiNote(i) << ", "
+                    << t.scalePositionForMidiNote(i) << std::endl;
             }
             else
             {
