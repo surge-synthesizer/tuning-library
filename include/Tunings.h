@@ -281,7 +281,7 @@ class Tuning
   private:
     std::array<double, N> ptable, lptable;
     std::array<int, N> scalepositiontable;
-    bool allowTuningCenterOnUnmapped;
+    bool allowTuningCenterOnUnmapped{false};
 };
 
 } // namespace Tunings
