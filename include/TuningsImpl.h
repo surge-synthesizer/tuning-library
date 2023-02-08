@@ -881,7 +881,7 @@ inline KeyboardMapping startScaleOnAndTuneNoteTo(int scaleStart, int midiNote, d
         << midiNote << "\n"
         << "! Frequency for MIDI note " << midiNote << "\n"
         << freq << "\n"
-        << "! Scale degree for formal octave. This is am empty mapping, so:\n"
+        << "! Scale degree for formal octave. This is an empty mapping, so:\n"
         << 0 << "\n"
         << "! Mapping. This is an empty mapping so list no keys\n";
 
