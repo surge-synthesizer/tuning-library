@@ -1291,3 +1291,50 @@ int main(int argc, char **argv)
     int result = Catch::Session().run(argc, argv);
     return result;
 }
+
+TEST_CASE("Retuning API")
+{
+    SECTION("12TET is retuned zero")
+    {
+        auto s = Tunings::evenTemperament12NoteScale();
+        auto t = Tunings::Tuning(s);
+        for (int i = 0; i < 128; ++i)
+        {
+            REQUIRE(t.retuningFromEqualInSemitonesForMidiNote(i) == Approx(0.f).margin(1e-7));
+            REQUIRE(t.retuningFromEqualInCentsForMidiNote(i) == Approx(0.f).margin(1e-7));
+        }
+    }
+
+    for (int diff = -8; diff < 8; ++diff)
+    {
+        DYNAMIC_SECTION("12TET with A moved by " << diff << " keys")
+        {
+            auto s = Tunings::evenTemperament12NoteScale();
+            auto k = Tunings::tuneNoteTo(69 + diff, 440.0);
+            auto t = Tunings::Tuning(s, k);
+            for (int i = 0; i < 128; ++i)
+            {
+                // This minus sign is because we are tuning note 69+diff so at -1, we tune
+                // note 68 to 440. This means when you press note 69 you want to get 466
+                // which is the same as tuning note 69 *up* one semitone.  Just a test
+                // construction artifact
+                REQUIRE(t.retuningFromEqualInSemitonesForMidiNote(i) == Approx(-diff).margin(1e-7));
+                REQUIRE(t.retuningFromEqualInCentsForMidiNote(i) ==
+                        Approx(-diff * 100.f).margin(1e-7));
+            }
+        }
+    }
+
+    SECTION("24 TET centered at zero")
+    {
+        auto s = Tunings::evenDivisionOfSpanByM(2, 24);
+        auto t = Tunings::Tuning(s);
+        for (int i = 60 - 24; i <= 60 + 24; ++i)
+        {
+            auto dist = 60 - i;
+            auto rt = dist * 0.5;
+            REQUIRE(t.retuningFromEqualInSemitonesForMidiNote(i) == Approx(rt).margin(1e-7));
+            REQUIRE(t.retuningFromEqualInCentsForMidiNote(i) == Approx(rt * 100.0).margin(1e-7));
+        }
+    }
+}

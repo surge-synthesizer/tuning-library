@@ -804,6 +804,15 @@ inline double Tuning::logScaledFrequencyForMidiNote(int mn) const
     return lptable[mni];
 }
 
+inline double Tuning::retuningFromEqualInCentsForMidiNote(int mn) const
+{
+    return retuningFromEqualInSemitonesForMidiNote(mn) * 100.0;
+}
+inline double Tuning::retuningFromEqualInSemitonesForMidiNote(int mn) const
+{
+    return logScaledFrequencyForMidiNote(mn) * 12 - mn;
+}
+
 inline int Tuning::scalePositionForMidiNote(int mn) const
 {
     auto mni = std::min(std::max(0, mn + 256), N - 1);
