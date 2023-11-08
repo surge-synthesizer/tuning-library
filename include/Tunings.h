@@ -271,6 +271,9 @@ class Tuning
     double frequencyForMidiNote(int mn) const;
     double frequencyForMidiNoteScaledByMidi0(int mn) const;
     double logScaledFrequencyForMidiNote(int mn) const;
+    double retuningFromEqualInCentsForMidiNote(int mn) const;
+    double retuningFromEqualInSemitonesForMidiNote(int mn) const;
+
     int scalePositionForMidiNote(int mn) const;
     bool isMidiNoteMapped(int mn) const;
 
