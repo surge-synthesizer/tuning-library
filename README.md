@@ -3,14 +3,15 @@
 In [Surge](https://surge-synthesizer.github.io), we added microtuning 
 and spent a lot of time making sure our
 SCL/KBM implementation was properly calibrated and available for C++
-programs. We then added that same implementation to [dexed] through a copy.
+programs. We then added that same implementation to [dexed](https://asb2m10.github.io/dexed/)
+through a copy.
 
 But we realized we could make the functions available as standalone C++ header
 only library and get three benefits.
 
 1. Share more code between Surge and our Dexed fork
 2. Make the code available to other soft synths where we or others may add microtuning like our tuning workbench synth 
-3. Have a set of standalone comand line utilities and well documented tests 
+3. Have a set of standalone command line utilities and well documented tests
 
 So we took the code and re-factored it here under an MIT license.
 
@@ -37,7 +38,7 @@ and then add the target `tuning-library` as a library target to your project.
 The code is organized such that Tunings.h is the API and TuningsImpl.h is the header with more 
 involved implementation bodies. Tunings.h includes TuningsImpl.h automatically.
 
-## Building the comand line tools and test suite
+## Building the command line tools and test suite
 
 ```shell
 cmake -Bbuild
