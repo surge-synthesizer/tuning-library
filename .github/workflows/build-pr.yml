@@ -23,7 +23,7 @@ jobs:
           submodules: recursive
 
       - name: Install Locales on Linux
-        if: runner.os == 'macOS'
+        if: runner.os == 'Linux'
         run: |
           sudo locale-gen es_ES
           sudo locale-gen fr_FR
