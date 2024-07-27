@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         path:
-          - 'src'
+          - 'tests'
           - 'include'
     steps:
       - uses: actions/checkout@v3

@@ -37,7 +37,6 @@ TEST_CASE("Loading tuning files")
 {
     SECTION("Load a 12 tone standard tuning")
     {
-        REQUIRE(1==2);
         auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
         REQUIRE(s.count == 12);
         // FIXME - write a lot more here obviously
