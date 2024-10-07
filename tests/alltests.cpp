@@ -1150,6 +1150,7 @@ TEST_CASE("Skipped Note and Root")
         REQUIRE(t.isMidiNoteMapped(60));
         REQUIRE(t.isMidiNoteMapped(69));
         REQUIRE(t.frequencyForMidiNote(69) == Approx(440.0).margin(0.01));
+        REQUIRE(t.frequencyForMidiNote(60) == Approx(246.9416506281).margin(0.01));
     }
 
     SECTION("Tuning from 59 throws")
@@ -1185,6 +1186,7 @@ TEST_CASE("Skipped Note and Root")
         auto t = Tunings::Tuning(s, k);
         REQUIRE(t.isMidiNoteMapped(60));
         REQUIRE(t.isMidiNoteMapped(69));
+        REQUIRE(t.frequencyForMidiNote(60) == Approx(246.9416506281).margin(0.01));
         REQUIRE(t.frequencyForMidiNote(69) == Approx(440.0).margin(0.01));
     }
 
@@ -1196,6 +1198,7 @@ TEST_CASE("Skipped Note and Root")
         t = t.withSkippedNotesInterpolated();
         REQUIRE(t.isMidiNoteMapped(60));
         REQUIRE(t.isMidiNoteMapped(69));
+        REQUIRE(t.frequencyForMidiNote(60) == Approx(246.9416506281).margin(0.01));
         REQUIRE(t.frequencyForMidiNote(69) == Approx(440.0).margin(0.01));
     }
 }
@@ -1336,5 +1339,25 @@ TEST_CASE("Retuning API")
             REQUIRE(t.retuningFromEqualInSemitonesForMidiNote(i) == Approx(rt).margin(1e-7));
             REQUIRE(t.retuningFromEqualInCentsForMidiNote(i) == Approx(rt * 100.0).margin(1e-7));
         }
+    }
+}
+
+TEST_CASE("Surge 7822 non uniform mapping misses scale center")
+{
+    SECTION("At Note 57 - no wrapping")
+    {
+        auto scale = Tunings::readSCLFile(testFile("kbm-wrapping-7822/31edo2.scl"));
+        auto map = Tunings::readKBMFile(testFile("kbm-wrapping-7822/31edo2-subset-57.kbm"));
+        auto t = Tunings::Tuning(scale, map);
+        REQUIRE(t.frequencyForMidiNote(60) == Approx(400.0));
+        REQUIRE(t.frequencyForMidiNote(61) == Approx(418.2936581199));
+    }
+    SECTION("At Note 69 - wrapping")
+    {
+        auto scale = Tunings::readSCLFile(testFile("kbm-wrapping-7822/31edo2.scl"));
+        auto map = Tunings::readKBMFile(testFile("kbm-wrapping-7822/31edo2-subset.kbm"));
+        auto t = Tunings::Tuning(scale, map);
+        REQUIRE(t.frequencyForMidiNote(60) == Approx(400.0));
+        REQUIRE(t.frequencyForMidiNote(61) == Approx(418.2936581199));
     }
 }

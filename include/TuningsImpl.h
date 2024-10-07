@@ -466,6 +466,28 @@ inline Tuning::Tuning(const Scale &s_, const KeyboardMapping &k_, bool allowTuni
         throw TuningError("Unable to tune to a scale with no notes. Your scale provided " +
                           std::to_string(s.count) + " notes.");
 
+    int useMiddleNote{k.middleNote};
+    if (k.count > 0)
+    {
+        // Is the KBM not spanning the tuning note
+        auto mapStart = useMiddleNote;
+        auto mapEnd = useMiddleNote + k.count;
+        while (mapStart > k.tuningConstantNote)
+        {
+            useMiddleNote -= k.count;
+            mapStart = useMiddleNote;
+            mapEnd = useMiddleNote + k.count;
+            // throw std::logic_error("Blah");
+        }
+        while (mapEnd < k.tuningConstantNote)
+        {
+            useMiddleNote += k.count;
+            mapStart = useMiddleNote;
+            mapEnd = useMiddleNote + k.count;
+            // throw std::logic_error("Blah");
+        }
+    }
+
     int kbmRotations{1};
     for (const auto &kv : k.keys)
     {
@@ -512,11 +534,11 @@ inline Tuning::Tuning(const Scale &s_, const KeyboardMapping &k_, bool allowTuni
     double pitches[N];
 
     int posPitch0 = 256 + k.tuningConstantNote;
-    int posScale0 = 256 + k.middleNote;
+    int posScale0 = 256 + useMiddleNote;
 
     double pitchMod = log(k.tuningPitch) / log(2) - 1;
 
-    int scalePositionOfTuningNote = k.tuningConstantNote - k.middleNote;
+    int scalePositionOfTuningNote = k.tuningConstantNote - useMiddleNote;
     if (k.count > 0)
     {
         while (scalePositionOfTuningNote >= k.count)
@@ -676,10 +698,12 @@ inline Tuning::Tuning(const Scale &s_, const KeyboardMapping &k_, bool allowTuni
                 ** If we mod that by the mapping size we know which note we are on
                 */
                 int mappingKey = distanceFromScale0 % k.count;
-                if (mappingKey < 0)
-                    mappingKey += k.count;
-                // Now have we gone off the end
                 int rotations = 0;
+                if (mappingKey < 0)
+                {
+                    mappingKey += k.count;
+                }
+                // Now have we gone off the end
                 int dt = distanceFromScale0;
                 if (dt > 0)
                 {
