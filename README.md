@@ -63,6 +63,9 @@ fails. `parsecheck test/data/*scl` will test that all those SCL parse.
 
 Github user @chinenual has ported this library to `go` here: https://github.com/chinenual/go-scala/
 
+Python bindings for this library are available
+[here](https://github.com/surge-synthesizer/tuning-library-python).
+
 ## Bugs, Problems, etc
 
 If you find bugs, please open a github issue and we will fix it right away!
