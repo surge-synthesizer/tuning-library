@@ -29,7 +29,6 @@ inline std::istream &getlineEndingIndependent(std::istream &is, std::string &t)
 {
     t.clear();
 
-    std::istream::sentry se(is, true);
     std::streambuf *sb = is.rdbuf();
 
     for (;;)
@@ -72,7 +71,7 @@ inline Tone toneFromString(const std::string &line, int lineno)
     Tone t;
     t.stringRep = line;
     t.lineno = lineno;
-    if (line.find(".") != std::string::npos)
+    if (line.find('.') != std::string::npos)
     {
         t.type = Tone::kToneCents;
         t.cents = locale_atof(line.c_str());
@@ -80,7 +79,7 @@ inline Tone toneFromString(const std::string &line, int lineno)
     else
     {
         t.type = Tone::kToneRatio;
-        auto slashPos = line.find("/");
+        auto slashPos = line.find('/');
         if (slashPos == std::string::npos)
         {
             t.ratio_n = atoll(line.c_str());
