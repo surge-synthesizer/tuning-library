@@ -29,6 +29,10 @@ inline std::istream &getlineEndingIndependent(std::istream &is, std::string &t)
 {
     t.clear();
 
+    std::istream::sentry se(is, true);
+    if (!se)
+        return is;
+
     std::streambuf *sb = is.rdbuf();
 
     for (;;)
@@ -507,7 +511,7 @@ inline Tuning::Tuning(const Scale &s_, const KeyboardMapping &k_, bool allowTuni
         {
             for (const auto &t : s.tones)
             {
-                auto tCopy = t;
+                Tunings::Tone tCopy = t;
                 tCopy.type = Tone::kToneCents;
                 tCopy.cents += pushOff;
                 tCopy.floatValue = tCopy.cents / 1200.0 + 1;
@@ -529,8 +533,6 @@ inline Tuning::Tuning(const Scale &s_, const KeyboardMapping &k_, bool allowTuni
         throw TuningError("Unable to apply mapping of size " + std::to_string(k.octaveDegrees) +
                           " to smaller scale of size " + std::to_string(s.count));
     }
-
-    double pitches[N];
 
     int posPitch0 = 256 + k.tuningConstantNote;
     int posScale0 = 256 + useMiddleNote;
@@ -631,6 +633,8 @@ inline Tuning::Tuning(const Scale &s_, const KeyboardMapping &k_, bool allowTuni
                     s.tones[scalePositionOfTuningNote - 1].floatValue - 1.0 - tshift;
         }
     }
+
+    double pitches[N];
 
     for (int i = 0; i < N; ++i)
     {
