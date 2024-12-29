@@ -820,6 +820,12 @@ TEST_CASE("Tone API")
         REQUIRE(t3.ratio_d == 1);
         REQUIRE(t3.ratio_n == 3);
         REQUIRE(t3.floatValue == Approx(log(3.0 / 1.0) / log(2.0) + 1.0).margin(1e-6));
+
+        auto t4 = Tunings::toneFromString("555/524 ! c# 138.75 Hz");
+        REQUIRE(t4.type == Tunings::Tone::kToneRatio);
+        REQUIRE(t4.ratio_d == 524);
+        REQUIRE(t4.ratio_n == 555);
+        REQUIRE(t4.floatValue == Approx(log(555.0 / 524.0) / log(2.0) + 1.0).margin(1e-6));
     }
 
     SECTION("Ridiculously Long Fraction Tones")
