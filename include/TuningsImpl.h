@@ -70,11 +70,15 @@ inline double locale_atof(const char *s)
     return result;
 }
 
-inline Tone toneFromString(const std::string &line, int lineno)
+inline Tone toneFromString(const std::string &fullLine, int lineno)
 {
     Tone t;
-    t.stringRep = line;
+    t.stringRep = fullLine;
     t.lineno = lineno;
+
+    // Allow end-of-line comments, e.g. "555/524 ! c# 138.75 Hz"
+    std::string line = fullLine.substr(0, fullLine.find("!", 0));
+
     if (line.find('.') != std::string::npos)
     {
         t.type = Tone::kToneCents;
