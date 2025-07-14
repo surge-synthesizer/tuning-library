@@ -65,9 +65,7 @@ struct Tone
 
     int lineno; // which line of the SCL does this tone appear on?
 
-    Tone() : type(kToneRatio), cents(0), ratio_d(1), ratio_n(1), stringRep("1/1"), floatValue(1.0)
-    {
-    }
+    Tone() : type(kToneRatio), cents(0), ratio_d(1), ratio_n(1), stringRep("1/1"), floatValue(1.0) {}
 };
 
 /**
@@ -122,17 +120,15 @@ struct KeyboardMapping
 };
 
 /**
- * The NotationMapping class represents Ableton's NOTE_NAMES extension in
- * the ASCL file.
+ * The NotationMapping class represents the list of note names corresponding
+ * to the scale tones.
  */
 struct NotationMapping
 {
     int count;
     std::vector<std::string> names;
 
-    std::string rawText;
-
-    NotationMapping() : count(0), rawText("") {}
+    NotationMapping() : count(0) {}
 };
 
 /**
@@ -150,6 +146,8 @@ struct AbletonScale {
     std::vector<std::string> rawTexts;
 
     AbletonScale() {}
+
+    int getKBMMidiNote(int scaleIndex);
 };
 
 /**

@@ -1355,6 +1355,11 @@ TEST_CASE("Loading Ableton scales")
         REQUIRE(s.rawTexts[0] == "! @ABL NOTE_NAMES C D♭ D \"E♭\" E1/2♭ F F♯ G A♭ A B♭ \"B1/2♭\"");
         REQUIRE(s.notationMapping.count == 12);
         REQUIRE(s.notationMapping.names[11] == "B1/2♭");
+        REQUIRE(s.keyboardMapping.count == 12);
+        REQUIRE(s.keyboardMapping.keys.size() == 12);
+        REQUIRE(s.keyboardMapping.tuningFrequency == 261.6256);
+        REQUIRE(s.keyboardMapping.middleNote == 60);
+        REQUIRE(s.keyboardMapping.tuningConstantNote == 60);
     }
 
     SECTION("Bad ASCL file")
