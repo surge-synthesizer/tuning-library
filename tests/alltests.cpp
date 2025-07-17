@@ -1379,6 +1379,14 @@ TEST_CASE("Loading Ableton scales")
     {
         REQUIRE_THROWS_AS(Tunings::readASCLFile(testFile("bad/bad-rast.ascl")), Tunings::TuningError);
     }
+
+    SECTION("Tuning read with ASCL")
+    {
+        auto s = Tunings::readASCLFile(testFile("rast.ascl"));
+        Tunings::Tuning t(s);
+        REQUIRE(t.frequencyForMidiNote(s.keyboardMapping.tuningConstantNote) == Approx(s.referencePitchFreq));
+        REQUIRE(t.scalePositionForMidiNote(s.keyboardMapping.tuningConstantNote) == s.referencePitchIndex);
+    }
 }
 
 int main(int argc, char **argv)
