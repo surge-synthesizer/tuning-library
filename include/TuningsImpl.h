@@ -965,10 +965,7 @@ inline AbletonScale readASCLStream(std::istream &inf)
     as.keyboardMapping.tuningConstantNote = as.scalePositionToMidiNote(0);
     as.keyboardMapping.octaveDegrees = as.keyboardMapping.count;
     as.keyboardMapping.keys = std::vector<int>(as.keyboardMapping.count);
-
     std::iota(as.keyboardMapping.keys.begin(), as.keyboardMapping.keys.end(), 0);
-
-    int referencePitchIndex = 60;
 
     // Parse the scale comments to detect @ABL extensions
     for (const auto &comment : as.scale.comments)
