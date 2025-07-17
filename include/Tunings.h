@@ -138,6 +138,9 @@ struct NotationMapping
  */
 struct AbletonScale {
     Scale scale;
+    int referencePitchOctave;
+    int referencePitchIndex;
+    double referencePitchFreq;
     KeyboardMapping keyboardMapping;
     NotationMapping notationMapping;
     std::string source;
@@ -145,9 +148,12 @@ struct AbletonScale {
 
     std::vector<std::string> rawTexts;
 
-    AbletonScale() {}
+    AbletonScale() : referencePitchOctave(3), referencePitchIndex(0), referencePitchFreq(261.6256) {}
 
-    int getKBMMidiNote(int scaleIndex);
+    int scalePositionToMidiNote(int scalePosition);
+    int freqToScalePosition(double freq);
+    double scalePositionToFreq(int scalePosition);
+    double scalePositionToCents(int scalePosition);
 };
 
 /**

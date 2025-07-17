@@ -23,6 +23,7 @@
 #include <cmath>
 #include <regex>
 #include <numeric>
+#include <limits>
 
 namespace Tunings
 {
@@ -935,6 +936,14 @@ inline KeyboardMapping startScaleOnAndTuneNoteTo(int scaleStart, int midiNote, d
     return parseKBMData(oss.str());
 }
 
+inline unsigned positive_mod(int v, unsigned m)
+{
+    int mod = v % (int)m;
+    if (mod < 0)
+        mod += m;
+    return mod;
+}
+
 inline AbletonScale readASCLStream(std::istream &inf)
 {
     AbletonScale as;
@@ -944,93 +953,7 @@ inline AbletonScale readASCLStream(std::istream &inf)
      *
      * @see https://tuning.ableton.com/squigadooServer/squigadoo/modular-playground
      *
-     * ```
-     * scalaKbmFile: {
-     *   filename: r,
-     *   text: (0, a.F)(i, 0, 127, C(0, t), C(t.referencePitchIndex, t), c.referencePitchFrequency, i, f)
-     * }
-     * ```
-     * i = number of tones, goes to both KBM count and formal octave
-     * 0 = MIDI first note
-     * 127 = MIDI last note
-     * f = array of note indexes to map to MIDI keys
-     * t = ASCL tuning object
-     * C(0, t) = function call to find MIDI middle note
-     * C(t.referencePitchIndex, t) = function call to MIDI reference note
-     *
-     * ```
-     * f = [];
-     * for (let e = 0; e < i; e++) f.push(e);
-     * ```
-     * f = array of note indexes from 0 to i-1, implying KBM linear mapping with all tones included
-     *
-     * ```
-     * function C(e, t) {
-     *   const n = R(m, t);
-     *   return (0, i.uZ)(60 + (e - n), 0, 127)
-     * }
-     *
-     * // clamp(value, min, max)
-     * function i.uZ(e, t, n) {
-     *   return Math.max(t, Math.min(e, n))
-     * }
-     *
-     * const m = (0, s.IF)(60);
-     *
-     * // midiNoteToFrequency(note)
-     * function s.IF(e) {
-	 *   return 440 * Math.pow(2, (e - 69) / 12)
-	 * }
-     * ```
-     *
-     * ```
-     * // scaleNoteToMidiNote(index, tuning)
-     * function R(e, t) {
-     *   let n = 0,
-     *       r = P(n, t);
-     *   const o = e - r,
-     *       i = o > 0 ? 1 : -1;
-     *   if (0 === o) return n;
-     *   let s = Math.abs(o),
-     *       a = n,
-     *       l = !1;
-     *   for (; !l;) {
-     *       n += i, r = P(n, t);
-     *       const o = Math.abs(e - r);
-     *       o < s && (s = o, a = n), l = i > 0 ? r > e : r < e
-     *   }
-     *   return a
-     * }
-     *
-     * // scaleNoteToFrequency(index, tuning)
-     * function P(e, t) {
-     *   return d(t.type).getFrequencyForEventIndex(e, t)
-     * }
-     * function getFrequencyForEventIndex(e, t) {
-     *   return t.referencePitchFrequency * Math.pow(2, (l(e, t) - l(t.referencePitchIndex, t)) / 1200)
-     * }
-     *
-     * function l(e, t) {
-     *   const n = a(t), // count of pitches
-     *   r = t.pitches[(0, i.re)(e, n)];
-     *   return ("cents" === r.type ? r.cents : c(r.numerator, r.denominator)) + Math.floor(e / n) * u(t)
-     * }
-     *
-     * // ratioToCents(n, d)
-     * function c(e, t) {
-     *   return 1200 * Math.log2(e / t)
-     * }
-     *
-     * function u(e) {
-     *   return "cents" === e.octaveSize.type ? e.octaveSize.cents : c(e.octaveSize.numerator, e.octaveSize.denominator)
-     * }
-     *
-     * // positiveMod(value, mod)
-     * function i.re(e, t) {
-     *   if (t <= 0) throw new Error("Cannot wrap with modulus of zero or less.");
-     *   return Math.abs(e) % t == 0 ? 0 : e >= 0 ? e % t : e % t + t
-     * }
-     * ```
+     * Start tracing at `scalaKbmFile`.
      */
 
     // Read the scale and create default KBM parameters
@@ -1038,8 +961,8 @@ inline AbletonScale readASCLStream(std::istream &inf)
     as.keyboardMapping.count = as.scale.count;
     as.keyboardMapping.firstMidi = 0;
     as.keyboardMapping.lastMidi = 127;
-    as.keyboardMapping.middleNote = as.getKBMMidiNote(0);
-    as.keyboardMapping.tuningConstantNote = as.getKBMMidiNote(0);
+    as.keyboardMapping.middleNote = as.scalePositionToMidiNote(0);
+    as.keyboardMapping.tuningConstantNote = as.scalePositionToMidiNote(0);
     as.keyboardMapping.octaveDegrees = as.keyboardMapping.count;
     as.keyboardMapping.keys = std::vector<int>(as.keyboardMapping.count);
 
@@ -1061,9 +984,13 @@ inline AbletonScale readASCLStream(std::istream &inf)
             std::string::const_iterator search_start(rawText.cbegin());
             while (std::regex_search(search_start, rawText.cend(), note_names, note_name_regex))
             {
-                as.notationMapping.names.push_back(note_names[1]);
+                as.notationMapping.names.push_back(std::string(note_names[1]) + std::string(note_names[2]));
                 search_start = note_names.suffix().first;
             }
+
+            // Move first note to last to correspond to scale.tones
+            std::rotate(as.notationMapping.names.begin(), as.notationMapping.names.begin() + 1, as.notationMapping.names.end());
+
             as.notationMapping.count = as.notationMapping.names.size();
             if (as.notationMapping.count != as.scale.count)
             {
@@ -1080,9 +1007,13 @@ inline AbletonScale readASCLStream(std::istream &inf)
             std::smatch reference_pitch;
             if (std::regex_match(rp, reference_pitch, std::regex("\\s*(\\d+)\\s*(\\d+)\\s*([\\d.]+)\\s*$")))
             {
-                as.keyboardMapping.tuningConstantNote = as.getKBMMidiNote(std::stoi(reference_pitch[2]));
-                as.keyboardMapping.tuningFrequency = std::stod(reference_pitch[3]);
+                as.referencePitchOctave = std::stoi(reference_pitch[1]);
+                as.referencePitchIndex = std::stoi(reference_pitch[2]);
+                as.referencePitchFreq = std::stod(reference_pitch[3]);
+                as.keyboardMapping.tuningFrequency = as.referencePitchFreq;
                 as.keyboardMapping.tuningPitch = as.keyboardMapping.tuningFrequency / MIDI_0_FREQ;
+                as.keyboardMapping.tuningConstantNote = as.scalePositionToMidiNote(as.referencePitchIndex);
+                as.keyboardMapping.middleNote = as.scalePositionToMidiNote(0);
             }
             else
             {
@@ -1116,10 +1047,54 @@ inline AbletonScale readASCLStream(std::istream &inf)
     return as;
 }
 
-inline int AbletonScale::getKBMMidiNote(int scaleIndex)
+inline int AbletonScale::scalePositionToMidiNote(int scalePosition)
 {
-    // TODO
-    return 60;
+    auto middleFreq = 440.0 * std::pow(2, (60.0 - 69.0) / 12);
+    auto middleIndex = freqToScalePosition(middleFreq);
+    return std::max(0, std::min(60 + (scalePosition - middleIndex), 127));
+}
+
+inline int AbletonScale::freqToScalePosition(double freq)
+{
+    auto n = 0;
+    auto r = scalePositionToFreq(n);
+    auto o = freq - r;
+    auto i = o > 0 ? 1 : -1;
+    auto s = std::abs(o);
+    auto a = n;
+    auto l = false;
+    if (s <= std::numeric_limits<double>::epsilon())
+        return n;
+    while (!l)
+    {
+        n += i;
+        r = scalePositionToFreq(n);
+        o = std::abs(freq - r);
+        if (o < s)
+        {
+            s = o;
+            a = n;
+        }
+        if (i > 0)
+            l = r > freq;
+        else
+            l = r < freq;
+    }
+    return a;
+}
+
+inline double AbletonScale::scalePositionToFreq(int scalePosition)
+{
+    return referencePitchFreq * pow(2, (
+        scalePositionToCents(scalePosition) - scalePositionToCents(referencePitchIndex)
+    ) / 1200);
+}
+
+inline double AbletonScale::scalePositionToCents(int scalePosition)
+{
+    auto n = scale.tones.size();
+    auto t = scale.tones[positive_mod(scalePosition, n)];
+    return t.cents + floor(1.0 * scalePosition / n) * scale.tones.back().cents;
 }
 
 inline AbletonScale readASCLFile(std::string fname)
