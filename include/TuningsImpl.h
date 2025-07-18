@@ -1046,7 +1046,7 @@ inline AbletonScale readASCLStream(std::istream &inf)
 
 inline int AbletonScale::scalePositionToMidiNote(int scalePosition)
 {
-    auto middleFreq = 440.0 * std::pow(2, (60.0 - 69.0) / 12);
+    auto middleFreq = MIDI_0_FREQ * (2<<4);
     auto middleIndex = freqToScalePosition(middleFreq);
     return std::max(0, std::min(60 + (scalePosition - middleIndex), 127));
 }
