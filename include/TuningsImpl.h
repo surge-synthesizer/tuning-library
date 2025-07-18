@@ -1006,7 +1006,7 @@ inline AbletonScale readASCLStream(std::istream &inf)
             {
                 as.referencePitchOctave = std::stoi(reference_pitch[1]);
                 as.referencePitchIndex = std::stoi(reference_pitch[2]);
-                as.referencePitchFreq = std::stod(reference_pitch[3]);
+                as.referencePitchFreq = locale_atof(reference_pitch.str(3).c_str());
                 as.keyboardMapping.tuningFrequency = as.referencePitchFreq;
                 as.keyboardMapping.tuningPitch = as.keyboardMapping.tuningFrequency / MIDI_0_FREQ;
                 as.keyboardMapping.tuningConstantNote = as.scalePositionToMidiNote(as.referencePitchIndex);
