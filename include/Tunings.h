@@ -148,7 +148,7 @@ struct AbletonScale {
 
     std::vector<std::string> rawTexts;
 
-    AbletonScale() : referencePitchOctave(3), referencePitchIndex(0), referencePitchFreq(MIDI_0_FREQ * (2<<4)) {}
+    AbletonScale() : referencePitchOctave(3), referencePitchIndex(0), referencePitchFreq(MIDI_0_FREQ * (1<<5)) {}
 
     int scalePositionToMidiNote(int scalePosition);
     int freqToScalePosition(double freq);
