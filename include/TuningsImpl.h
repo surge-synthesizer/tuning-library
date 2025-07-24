@@ -961,8 +961,8 @@ inline AbletonScale readASCLStream(std::istream &inf)
     as.keyboardMapping.count = as.scale.count;
     as.keyboardMapping.firstMidi = 0;
     as.keyboardMapping.lastMidi = 127;
-    as.keyboardMapping.middleNote = as.scalePositionToMidiNote(0);
-    as.keyboardMapping.tuningConstantNote = as.scalePositionToMidiNote(0);
+    as.keyboardMapping.middleNote = as.midiNoteForScalePosition(0);
+    as.keyboardMapping.tuningConstantNote = as.midiNoteForScalePosition(0);
     as.keyboardMapping.octaveDegrees = as.keyboardMapping.count;
     as.keyboardMapping.keys = std::vector<int>(as.keyboardMapping.count);
     std::iota(as.keyboardMapping.keys.begin(), as.keyboardMapping.keys.end(), 0);
@@ -1013,8 +1013,8 @@ inline AbletonScale readASCLStream(std::istream &inf)
                 as.keyboardMapping.tuningFrequency = as.referencePitchFreq;
                 as.keyboardMapping.tuningPitch = as.keyboardMapping.tuningFrequency / MIDI_0_FREQ;
                 as.keyboardMapping.tuningConstantNote =
-                    as.scalePositionToMidiNote(as.referencePitchIndex);
-                as.keyboardMapping.middleNote = as.scalePositionToMidiNote(0);
+                    as.midiNoteForScalePosition(as.referencePitchIndex);
+                as.keyboardMapping.middleNote = as.midiNoteForScalePosition(0);
             }
             else
             {
@@ -1048,17 +1048,17 @@ inline AbletonScale readASCLStream(std::istream &inf)
     return as;
 }
 
-inline int AbletonScale::scalePositionToMidiNote(int scalePosition)
+inline int AbletonScale::midiNoteForScalePosition(int scalePosition)
 {
     auto middleFreq = MIDI_0_FREQ * (1 << 5);
-    auto middleIndex = freqToScalePosition(middleFreq);
+    auto middleIndex = scalePositionForFrequency(middleFreq);
     return std::max(0, std::min(60 + (scalePosition - middleIndex), 127));
 }
 
-inline int AbletonScale::freqToScalePosition(double freq)
+inline int AbletonScale::scalePositionForFrequency(double freq)
 {
     auto n = 0;
-    auto r = scalePositionToFreq(n);
+    auto r = frequencyForScalePosition(n);
     auto o = freq - r;
     auto i = o > 0 ? 1 : -1;
     auto s = std::abs(o);
@@ -1069,7 +1069,7 @@ inline int AbletonScale::freqToScalePosition(double freq)
     while (!l)
     {
         n += i;
-        r = scalePositionToFreq(n);
+        r = frequencyForScalePosition(n);
         o = std::abs(freq - r);
         if (o < s)
         {
@@ -1084,14 +1084,14 @@ inline int AbletonScale::freqToScalePosition(double freq)
     return a;
 }
 
-inline double AbletonScale::scalePositionToFreq(int scalePosition)
+inline double AbletonScale::frequencyForScalePosition(int scalePosition)
 {
-    return referencePitchFreq * pow(2, (scalePositionToCents(scalePosition) -
-                                        scalePositionToCents(referencePitchIndex)) /
+    return referencePitchFreq * pow(2, (centsForScalePosition(scalePosition) -
+                                        centsForScalePosition(referencePitchIndex)) /
                                            1200);
 }
 
-inline double AbletonScale::scalePositionToCents(int scalePosition)
+inline double AbletonScale::centsForScalePosition(int scalePosition)
 {
     auto n = scale.tones.size();
     auto t = scale.tones[positive_mod(scalePosition, n)];

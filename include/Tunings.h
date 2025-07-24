@@ -157,10 +157,10 @@ struct AbletonScale
     {
     }
 
-    int scalePositionToMidiNote(int scalePosition);
-    int freqToScalePosition(double freq);
-    double scalePositionToFreq(int scalePosition);
-    double scalePositionToCents(int scalePosition);
+    int midiNoteForScalePosition(int scalePosition);
+    int scalePositionForFrequency(double freq);
+    double frequencyForScalePosition(int scalePosition);
+    double centsForScalePosition(int scalePosition);
 };
 
 /**
