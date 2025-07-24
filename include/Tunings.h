@@ -128,9 +128,10 @@ struct KeyboardMapping
 struct NotationMapping
 {
     int count;
+    int referencePitchOctave;
     std::vector<std::string> names;
 
-    NotationMapping() : count(0) {}
+    NotationMapping() : count(0), referencePitchOctave(3) {}
 };
 
 /**
@@ -334,6 +335,8 @@ class Tuning
 
     int scalePositionForMidiNote(int mn) const;
     bool isMidiNoteMapped(int mn) const;
+
+    int midiNoteForNoteName(std::string noteName, int octave) const;
 
     // For convenience, the scale and mapping used to construct this are kept as public copies
     Scale scale;

@@ -24,6 +24,7 @@
 #include <regex>
 #include <numeric>
 #include <limits>
+#include <algorithm>
 
 namespace Tunings
 {
@@ -71,6 +72,14 @@ inline double locale_atof(const char *s)
     istr.imbue(std::locale("C"));
     istr >> result;
     return result;
+}
+
+inline unsigned positive_mod(int v, unsigned m)
+{
+    int mod = v % (int)m;
+    if (mod < 0)
+        mod += m;
+    return mod;
 }
 
 inline Tone toneFromString(const std::string &fullLine, int lineno)
@@ -864,6 +873,19 @@ inline bool Tuning::isMidiNoteMapped(int mn) const
     return scalepositiontable[mni] >= 0;
 }
 
+inline int Tuning::midiNoteForNoteName(std::string noteName, int octave) const
+{
+    const auto it = std::find(notationMapping.names.begin(), notationMapping.names.end(), noteName);
+    if (it == notationMapping.names.end())
+    {
+        std::string s = "Invalid note name '" + noteName + "'";
+        throw TuningError(s);
+    }
+    int scalePosition = positive_mod(it - notationMapping.names.begin() + 1, notationMapping.count);
+    return scalePosition + keyboardMapping.middleNote +
+           keyboardMapping.octaveDegrees * (octave - notationMapping.referencePitchOctave);
+}
+
 inline Tuning Tuning::withSkippedNotesInterpolated() const
 {
     Tuning res = *this;
@@ -936,14 +958,6 @@ inline KeyboardMapping startScaleOnAndTuneNoteTo(int scaleStart, int midiNote, d
     return parseKBMData(oss.str());
 }
 
-inline unsigned positive_mod(int v, unsigned m)
-{
-    int mod = v % (int)m;
-    if (mod < 0)
-        mod += m;
-    return mod;
-}
-
 inline AbletonScale readASCLStream(std::istream &inf)
 {
     AbletonScale as;
@@ -1007,7 +1021,8 @@ inline AbletonScale readASCLStream(std::istream &inf)
             if (std::regex_match(rp, reference_pitch,
                                  std::regex("\\s*(\\d+)\\s*(\\d+)\\s*([\\d.]+)\\s*$")))
             {
-                as.referencePitchOctave = std::stoi(reference_pitch[1]);
+                as.referencePitchOctave = as.notationMapping.referencePitchOctave =
+                    std::stoi(reference_pitch[1]);
                 as.referencePitchIndex = std::stoi(reference_pitch[2]);
                 as.referencePitchFreq = locale_atof(reference_pitch.str(3).c_str());
                 as.keyboardMapping.tuningFrequency = as.referencePitchFreq;
