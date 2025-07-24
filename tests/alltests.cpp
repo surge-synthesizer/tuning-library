@@ -1387,6 +1387,8 @@ TEST_CASE("Loading Ableton scales")
         REQUIRE(t.frequencyForMidiNote(s.keyboardMapping.tuningConstantNote) == Approx(s.referencePitchFreq));
         REQUIRE(t.scalePositionForMidiNote(s.keyboardMapping.tuningConstantNote) == s.referencePitchIndex);
         REQUIRE(t.midiNoteForNoteName("C", 3) == 60);
+        REQUIRE(t.midiNoteForNoteName("C", -100) == 0);
+        REQUIRE(t.midiNoteForNoteName("C", 100) == 511);
         REQUIRE(t.midiNoteForNoteName("E1/2♭", 3) == 64);
         REQUIRE(t.midiNoteForNoteName("E1/2♭", 2) == 64 - 12);
         REQUIRE_THROWS_AS(t.midiNoteForNoteName("E1/3♭", 3), Tunings::TuningError);

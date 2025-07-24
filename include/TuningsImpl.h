@@ -882,8 +882,10 @@ inline int Tuning::midiNoteForNoteName(std::string noteName, int octave) const
         throw TuningError(s);
     }
     int scalePosition = positive_mod(it - notationMapping.names.begin() + 1, notationMapping.count);
-    return scalePosition + keyboardMapping.middleNote +
-           keyboardMapping.octaveDegrees * (octave - notationMapping.referencePitchOctave);
+    return std::min(std::max(0, scalePosition + keyboardMapping.middleNote +
+                                    keyboardMapping.octaveDegrees *
+                                        (octave - notationMapping.referencePitchOctave)),
+                    N - 1);
 }
 
 inline Tuning Tuning::withSkippedNotesInterpolated() const
