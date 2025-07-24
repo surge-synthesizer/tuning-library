@@ -882,10 +882,11 @@ inline int Tuning::midiNoteForNoteName(std::string noteName, int octave) const
         throw TuningError(s);
     }
     int scalePosition = positive_mod(it - notationMapping.names.begin() + 1, notationMapping.count);
-    return std::min(std::max(0, scalePosition + keyboardMapping.middleNote +
-                                    keyboardMapping.octaveDegrees *
-                                        (octave - notationMapping.referencePitchOctave)),
-                    N - 1);
+    int referencePitchOctave = ceil((keyboardMapping.middleNote - 21) / 12);
+    return std::min(
+        std::max(0, scalePosition + keyboardMapping.middleNote +
+                        keyboardMapping.octaveDegrees * (octave - referencePitchOctave)),
+        N - 1);
 }
 
 inline Tuning Tuning::withSkippedNotesInterpolated() const
@@ -1023,8 +1024,7 @@ inline AbletonScale readASCLStream(std::istream &inf)
             if (std::regex_match(rp, reference_pitch,
                                  std::regex("\\s*(\\d+)\\s*(\\d+)\\s*([\\d.]+)\\s*$")))
             {
-                as.referencePitchOctave = as.notationMapping.referencePitchOctave =
-                    std::stoi(reference_pitch[1]);
+                as.referencePitchOctave = std::stoi(reference_pitch[1]);
                 as.referencePitchIndex = std::stoi(reference_pitch[2]);
                 as.referencePitchFreq = locale_atof(reference_pitch.str(3).c_str());
                 as.keyboardMapping.tuningFrequency = as.referencePitchFreq;

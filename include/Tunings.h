@@ -128,10 +128,9 @@ struct KeyboardMapping
 struct NotationMapping
 {
     int count;
-    int referencePitchOctave;
     std::vector<std::string> names;
 
-    NotationMapping() : count(0), referencePitchOctave(3) {}
+    NotationMapping() : count(0) {}
 };
 
 /**
