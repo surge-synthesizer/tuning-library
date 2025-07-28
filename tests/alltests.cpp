@@ -1407,6 +1407,7 @@ TEST_CASE("Loading Ableton scales")
         auto s = Tunings::readASCLFile(testFile("31edo.scl"));
         Tunings::Tuning t(s);
         REQUIRE_THROWS_AS(t.midiNoteForNoteName("E1/3♭", 3), Tunings::TuningError);
+        REQUIRE_THROWS_AS(t.noteNameForScalePosition(4), Tunings::TuningError);
     }
 }
 

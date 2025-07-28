@@ -891,6 +891,11 @@ inline int Tuning::midiNoteForNoteName(std::string noteName, int octave) const
 
 inline std::string Tuning::noteNameForScalePosition(int scalePosition) const
 {
+    if (notationMapping.count == 0)
+    {
+        std::string s = "No note names found in the tuning.";
+        throw TuningError(s);
+    }
     return notationMapping.names.at(positive_mod(scalePosition - 1, notationMapping.count));
 }
 
