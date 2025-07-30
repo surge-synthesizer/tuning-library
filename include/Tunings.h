@@ -41,7 +41,7 @@
 
 namespace Tunings
 {
-static constexpr double MIDI_0_FREQ = 8.17579891564371; // or 440.0 * pow( 2.0, - (69.0/12.0 ) )
+static constexpr double MIDI_0_FREQ = 8.17579891564371; // or 440.0 * pow( 2.0, - ( 69.0/12.0 ) )
 
 /**
  * A Tone is a single entry in an SCL file. It is expressed either in cents or in
@@ -86,11 +86,12 @@ inline Tone toneFromString(const std::string &t, int lineno = -1);
  */
 struct Scale
 {
-    std::string name;        // The name in the SCL file. Informational only
-    std::string description; // The description in the SCL file. Informational only
-    std::string rawText;     // The raw text of the SCL file used to create this Scale
-    int count;               // The number of tones.
-    std::vector<Tone> tones; // The tones
+    std::string name;                  // The name in the SCL file. Informational only
+    std::string description;           // The description in the SCL file. Informational only
+    std::string rawText;               // The raw text of the SCL file used to create this Scale
+    int count;                         // The number of tones
+    std::vector<Tone> tones;           // The tones
+    std::vector<std::string> comments; // The comments
 
     Scale() : name("empty scale"), description(""), rawText(""), count(0) {}
 };
@@ -104,7 +105,6 @@ struct Scale
  *
  * Just as with Scale, the rawText member contains the text of the KBM file used.
  */
-
 struct KeyboardMapping
 {
     int count;
@@ -119,6 +119,51 @@ struct KeyboardMapping
     std::string name;
 
     KeyboardMapping();
+};
+
+/**
+ * The NotationMapping class represents the list of note names corresponding
+ * to the scale tones.
+ */
+struct NotationMapping
+{
+    int count;
+    std::vector<std::string> names; // organized in the same order as Scale::tones
+
+    NotationMapping() : count(0) {}
+};
+
+/**
+ * The AbletonScale class represents Ableton's ASCL extension to the SCL file.
+ *
+ * @see https://help.ableton.com/hc/en-us/articles/10998372840220-ASCL-Specification
+ */
+struct AbletonScale
+{
+    Scale scale;
+    int referencePitchOctave;
+    int referencePitchIndex;
+    double referencePitchFreq;
+    KeyboardMapping keyboardMapping;
+    NotationMapping notationMapping;
+    std::string source;
+    std::string link;
+
+    std::vector<std::string> rawTexts;
+
+    AbletonScale()
+        : referencePitchOctave(3), referencePitchIndex(0),
+          referencePitchFreq(MIDI_0_FREQ * (1 << 5))
+    {
+    }
+
+    friend AbletonScale readASCLStream(std::istream &inf);
+
+  private:
+    int midiNoteForScalePosition(int scalePosition);
+    int scalePositionForFrequency(double freq);
+    double frequencyForScalePosition(int scalePosition);
+    double centsForScalePosition(int scalePosition);
 };
 
 /**
@@ -205,6 +250,21 @@ KeyboardMapping tuneNoteTo(int midiNote, double freq);
 KeyboardMapping startScaleOnAndTuneNoteTo(int scaleStart, int midiNote, double freq);
 
 /**
+ * readASCLStream returns an AbletonScale from the ASCL input stream
+ */
+AbletonScale readASCLStream(std::istream &inf);
+
+/**
+ * readASCLFile returns an AbletonScale from the ASCL file in fname
+ */
+AbletonScale readASCLFile(std::string fname);
+
+/**
+ * parseASCLData returns an AbletonScale from the ASCL file contents in memory
+ */
+AbletonScale parseASCLData(const std::string &asclContents);
+
+/**
  * The Tuning class is the primary place where you will interact with this library.
  * It is constructed for a scale and mapping and then gives you the ability to
  * determine frequencies across and beyond the midi keyboard. Since modulation
@@ -230,6 +290,7 @@ class Tuning
      */
     Tuning(const Scale &s);
     Tuning(const KeyboardMapping &k);
+    Tuning(const AbletonScale &as);
     Tuning(const Scale &s, const KeyboardMapping &k, bool allowTuningCenterOnUnmapped = false);
 
     /*
@@ -277,9 +338,13 @@ class Tuning
     int scalePositionForMidiNote(int mn) const;
     bool isMidiNoteMapped(int mn) const;
 
+    int midiNoteForNoteName(std::string noteName, int octave) const;
+    std::string noteNameForScalePosition(int scalePosition) const;
+
     // For convenience, the scale and mapping used to construct this are kept as public copies
     Scale scale;
     KeyboardMapping keyboardMapping;
+    NotationMapping notationMapping;
 
   private:
     std::array<double, N> ptable, lptable;
