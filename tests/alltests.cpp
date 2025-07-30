@@ -1361,6 +1361,10 @@ TEST_CASE("Loading Ableton scales")
         REQUIRE(s.keyboardMapping.tuningFrequency == Approx(261.6256));
         REQUIRE(s.keyboardMapping.middleNote == 60);
         REQUIRE(s.keyboardMapping.tuningConstantNote == 60);
+
+        auto s2 = Tunings::readASCLFile(testFile("rast6.ascl"));
+        REQUIRE(s2.notationMapping.count == 20);
+        REQUIRE(s2.notationMapping.names[3] == "E1/2♭-a-");
     }
 
     SECTION("ASCL compared with Ableton-generated KBM")

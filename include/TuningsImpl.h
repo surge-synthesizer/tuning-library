@@ -1005,7 +1005,7 @@ inline AbletonScale readASCLStream(std::istream &inf)
         {
             std::string rawText = command[2];
             std::smatch note_names;
-            std::regex note_name_regex("\\s*(?:\"(\\S+)\"|(\\S+))\\s*");
+            std::regex note_name_regex("\\s*(?:\"(.*?)\\s*\"|(\\S+))\\s*");
             std::string::const_iterator search_start(rawText.cbegin());
             while (std::regex_search(search_start, rawText.cend(), note_names, note_name_regex))
             {
