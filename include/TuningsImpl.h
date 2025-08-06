@@ -922,8 +922,8 @@ inline Tuning Tuning::withSkippedNotesInterpolated() const
 
 inline KeyboardMapping::KeyboardMapping()
     : count(0), firstMidi(0), lastMidi(127), middleNote(60), tuningConstantNote(60),
-      tuningFrequency(MIDI_0_FREQ * 32.0), tuningPitch(32.0), octaveDegrees(0), rawText(""),
-      name("")
+      tuningFrequency(MIDI_0_FREQ * 32.0), tuningPitch(32.0), tuningOctave(4), octaveDegrees(0),
+      rawText(""), name("")
 {
     std::ostringstream oss;
     oss.imbue(std::locale("C"));
