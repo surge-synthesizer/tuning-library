@@ -1,6 +1,15 @@
 cmake_minimum_required(VERSION 3.15)
 project(tuning-library VERSION 1.0 LANGUAGES C CXX)
 
+if(APPLE AND DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
+    if(CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS "10.15")
+        message(
+            WARNING
+            "CMAKE_OSX_DEPLOYMENT_TARGET is ${CMAKE_OSX_DEPLOYMENT_TARGET}, but Surge Synthesizer Team libraries require at least 10.15"
+        )
+    endif()
+endif()
+
 add_library(${PROJECT_NAME} INTERFACE)
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_20)
 target_include_directories(${PROJECT_NAME} INTERFACE include)
