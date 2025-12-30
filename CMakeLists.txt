@@ -1,11 +1,13 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 project(tuning-library VERSION 1.0 LANGUAGES C CXX)
 
 add_library(${PROJECT_NAME} INTERFACE)
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_20)
 target_include_directories(${PROJECT_NAME} INTERFACE include)
-if (MSVC)
+if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     target_compile_options(${PROJECT_NAME} INTERFACE /Zc:__cplusplus /Zc:char8_t-)
+elseif(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
+    target_compile_options(${PROJECT_NAME} INTERFACE -fno-char8_t)
 endif()
 
 get_directory_property(parent_dir PARENT_DIRECTORY)
