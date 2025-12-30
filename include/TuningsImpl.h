@@ -202,18 +202,17 @@ inline Scale readSCLStream(std::istream &inf)
     return res;
 }
 
-inline Scale readSCLFile(std::string fname)
+inline Scale readSCLFile(const std::filesystem::path &path)
 {
-    std::ifstream inf;
-    inf.open(fname);
-    if (!inf.is_open())
+    std::ifstream inf(path);
+
+    if (!inf)
     {
-        std::string s = "Unable to open file '" + fname + "'";
-        throw TuningError(s);
+        throw TuningError("Unable to open file '" + path.u8string() + "'");
     }
 
     auto res = readSCLStream(inf);
-    res.name = fname;
+    res.name = path.filename().stem().u8string();
     return res;
 }
 

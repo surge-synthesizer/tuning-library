@@ -1,12 +1,22 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 project(tuning-library VERSION 1.0 LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+if(APPLE AND DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
+    if(CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS "10.15")
+        message(
+            WARNING
+            "CMAKE_OSX_DEPLOYMENT_TARGET is ${CMAKE_OSX_DEPLOYMENT_TARGET}, but Surge Synthesizer Team libraries require at least 10.15"
+        )
+    endif()
+endif()
 
 add_library(${PROJECT_NAME} INTERFACE)
+target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_20)
 target_include_directories(${PROJECT_NAME} INTERFACE include)
-if (MSVC)
-    target_compile_options(${PROJECT_NAME} INTERFACE /Zc:__cplusplus)
+if(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+    target_compile_options(${PROJECT_NAME} INTERFACE /Zc:__cplusplus /Zc:char8_t-)
+elseif(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
+    target_compile_options(${PROJECT_NAME} INTERFACE -fno-char8_t)
 endif()
 
 get_directory_property(parent_dir PARENT_DIRECTORY)
