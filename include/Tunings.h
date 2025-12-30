@@ -34,6 +34,8 @@
 #define __INCLUDE_TUNINGS_H
 
 #include <string>
+#include <string_view>
+#include <filesystem>
 #include <vector>
 #include <iostream>
 #include <memory>
@@ -176,7 +178,7 @@ struct AbletonScale
 class TuningError : public std::exception
 {
   public:
-    TuningError(std::string m) : whatv(m) {}
+    explicit TuningError(std::string_view m) : whatv(m) {}
     virtual const char *what() const noexcept override { return whatv.c_str(); }
 
   private:
@@ -189,9 +191,9 @@ class TuningError : public std::exception
 Scale readSCLStream(std::istream &inf);
 
 /**
- * readSCLFile returns a Scale from the SCL File in fname
+ * readSCLFile returns a Scale from the SCL File in path
  */
-Scale readSCLFile(std::string fname);
+Scale readSCLFile(const std::filesystem::path &path);
 
 /**
  * parseSCLData returns a scale from the SCL file contents in memory
