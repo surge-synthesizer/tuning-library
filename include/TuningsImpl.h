@@ -137,23 +137,12 @@ std::ifstream makeStream(const StreamablePath auto &path)
     using P = std::remove_cvref_t<decltype(path)>;
 
 #ifdef _WIN32
-    if constexpr (WidePath<P>)
-        return std::ifstream(path);
-    else if constexpr (U8PathConstructible<P>)
+    if constexpr (U8PathConstructible<P>)
         return std::ifstream(std::filesystem::u8path(path));
     else
-    {
-        static_assert(false, "Cannot convert path to ifstream on Windows");
-    }
-#else
-    if constexpr (NarrowPath<P>)
-    {
         return std::ifstream(path);
-    }
-    else
-    {
-        static_assert(false, "Cannot convert path to ifstream on this platform");
-    }
+#else
+    return std::ifstream(path);
 #endif
 }
 
