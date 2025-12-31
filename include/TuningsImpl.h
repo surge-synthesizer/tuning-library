@@ -135,16 +135,25 @@ inline Tone toneFromString(const std::string &fullLine, int lineno)
 std::ifstream makeStream(const StreamablePath auto &path)
 {
 #ifdef _WIN32
-    if constexpr (std::is_convertible_v<decltype(path), std::wstring>)
+    using P = std::remove_cvref_t<decltype(path)>;
+
+    if constexpr (WidePath<P>)
+        return std::ifstream(path);
+    else if constexpr (U8PathConstructible<P>)
+        return std::ifstream(std::filesystem::u8path(path));
+    else
+    {
+        static_assert(false, "Cannot convert path to ifstream on Windows");
+    }
+#else
+    if constexpr (NarrowPath<P>)
     {
         return std::ifstream(path);
     }
     else
     {
-        return std::ifstream(std::filesystem::u8path(path));
+        static_assert(false, "Cannot convert path to ifstream on this platform");
     }
-#else
-    return std::ifstream(path);
 #endif
 }
 
@@ -253,6 +262,8 @@ inline Scale readSCLStream(std::istream &inf)
 
 Scale readSCLFile(const StreamablePath auto &path)
 {
+    using P = std::remove_cvref_t<decltype(path)>;
+
     auto inf = makeStream(path);
 
     if (!inf)
@@ -260,11 +271,18 @@ Scale readSCLFile(const StreamablePath auto &path)
         std::string errMsg = "Unable to open file '";
 
 #ifdef _WIN32
-        if constexpr (std::is_convertible_v<decltype(path), std::wstring>)
+        if constexpr (PathWithU8<P>)
+            errMsg += path.u8string();
+        else if constexpr (WidePath<P>)
+            errMsg += std::filesystem::path(path).u8string();
+        else if constexpr (U8PathConstructible<P>)
             errMsg += std::filesystem::u8path(path).u8string();
+#else
+        if constexpr (PathWithU8<P>)
+            errMsg += path.u8string();
         else
-#endif
             errMsg += std::string(path);
+#endif
 
         errMsg += "'";
         throw TuningError(errMsg);
@@ -275,18 +293,25 @@ Scale readSCLFile(const StreamablePath auto &path)
     if (res.name.empty())
     {
 #ifdef _WIN32
-        if constexpr (std::is_convertible_v<decltype(path), std::wstring>)
+        if constexpr (PathWithStemU8<P>)
+            res.name = path.filename().stem().u8string();
+        else if constexpr (WidePath<P>)
+            res.name = std::filesystem::path(path).filename().stem().u8string();
+        else if constexpr (U8PathConstructible<P>)
             res.name = std::filesystem::u8path(path).filename().stem().u8string();
+#else
+        if constexpr (PathWithStemU8<P>)
+            res.name = path.filename().stem().u8string();
         else
-#endif
         {
-            std::string s = std::string(path);
+            std::string s(path);
             auto sep = s.find_last_of("/\\");
             if (sep != std::string::npos)
                 s = s.substr(sep + 1);
             auto dot = s.find_last_of('.');
             res.name = (dot == std::string::npos) ? s : s.substr(0, dot);
         }
+#endif
     }
 
     return res;
