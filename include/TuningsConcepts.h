@@ -22,16 +22,6 @@ namespace Tunings
 template <typename P>
 concept StreamablePath = requires(P p) { std::ifstream(std::decay_t<P>(p)); };
 
-template <typename P>
-concept WidePath = std::same_as<P, const wchar_t *> || requires(const P &p) {
-    { p.c_str() } -> std::same_as<const wchar_t *>;
-};
-
-template <typename P>
-concept NarrowPath = std::same_as<P, const char *> || requires(const P &p) {
-    { p.c_str() } -> std::same_as<const char *>;
-};
-
 #ifdef _WIN32
 template <typename P>
 concept U8PathConstructible = requires(const P &p) {
@@ -48,6 +38,18 @@ template <typename P>
 concept PathWithStemU8 = requires(const P &p) {
     { p.filename().stem().u8string() } -> std::convertible_to<std::string>;
 };
+
+template <typename P>
+concept NarrowPath = std::same_as<std::decay_t<P>, const char *> ||
+                     std::same_as<std::decay_t<P>, std::string> || requires(const P &p) {
+                         { p.c_str() } -> std::same_as<const char *>;
+                     };
+
+template <typename P>
+concept WidePath = std::same_as<std::decay_t<P>, const wchar_t *> ||
+                   std::same_as<std::decay_t<P>, std::wstring> || requires(const P &p) {
+                       { p.c_str() } -> std::same_as<const wchar_t *>;
+                   };
 } // namespace Tunings
 
 #endif
