@@ -186,7 +186,7 @@ class TuningError : public std::exception
 /**
  * makeStream returns a stream from a path
  */
-std::ifstream makeStream(const StreamablePath auto &path);
+std::ifstream makeStream(StreamablePath auto &&path);
 
 /**
  * readSCLStream returns a Scale from the SCL input stream
@@ -196,7 +196,7 @@ Scale readSCLStream(std::istream &inf);
 /**
  * readSCLFile returns a Scale from the SCL File in path
  */
-Scale readSCLFile(const StreamablePath auto &path);
+Scale readSCLFile(StreamablePath auto &&path);
 
 /**
  * parseSCLData returns a scale from the SCL file contents in memory

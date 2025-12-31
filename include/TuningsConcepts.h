@@ -20,7 +20,7 @@
 namespace Tunings
 {
 template <typename P>
-concept StreamablePath = requires(const P &p) { std::ifstream(p); };
+concept StreamablePath = requires(P p) { std::ifstream(std::decay_t<P>(p)); };
 
 template <typename P>
 concept WidePath = std::same_as<P, const wchar_t *> || requires(const P &p) {
