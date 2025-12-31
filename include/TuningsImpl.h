@@ -134,9 +134,9 @@ inline Tone toneFromString(const std::string &fullLine, int lineno)
 
 std::ifstream makeStream(const StreamablePath auto &path)
 {
-#ifdef _WIN32
     using P = std::remove_cvref_t<decltype(path)>;
 
+#ifdef _WIN32
     if constexpr (WidePath<P>)
         return std::ifstream(path);
     else if constexpr (U8PathConstructible<P>)
