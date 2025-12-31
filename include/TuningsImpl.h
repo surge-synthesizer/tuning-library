@@ -26,6 +26,10 @@
 #include <limits>
 #include <algorithm>
 
+#ifdef _WIN32
+#include <filesystem>
+#endif
+
 namespace Tunings
 {
 // Thank you to: https://gist.github.com/josephwb/df09e3a71679461fc104
@@ -128,6 +132,18 @@ inline Tone toneFromString(const std::string &fullLine, int lineno)
     return t;
 }
 
+template <StreamablePath P> std::ifstream makeStream(const P &path)
+{
+#ifdef _WIN32
+    if constexpr (WidePath<P>)
+        return std::ifstream(path);
+    else
+        return std::ifstream(std::filesystem::u8path(path));
+#else
+    return std::ifstream(path);
+#endif
+}
+
 inline Scale readSCLStream(std::istream &inf)
 {
     std::string line;
@@ -137,10 +153,39 @@ inline Scale readSCLStream(std::istream &inf)
     Scale res;
     std::ostringstream rawOSS;
     int lineno = 0;
+    bool declaredNameSet = false;
+
     while (getlineEndingIndependent(inf, line))
     {
         rawOSS << line << "\n";
         lineno++;
+
+        if (!declaredNameSet && !line.empty() && line[0] == '!')
+        {
+            std::string_view nameCandidate(line);
+            nameCandidate.remove_prefix(1);
+
+            while (!nameCandidate.empty() &&
+                   (nameCandidate.front() == ' ' || nameCandidate.front() == '\t'))
+            {
+                nameCandidate.remove_prefix(1);
+            }
+
+            while (!nameCandidate.empty() &&
+                   (nameCandidate.back() == ' ' || nameCandidate.back() == '\t'))
+            {
+                nameCandidate.remove_suffix(1);
+            }
+
+            if (!nameCandidate.empty())
+            {
+                res.name = std::string(nameCandidate);
+            }
+
+            declaredNameSet = true;
+            res.comments.push_back(line);
+            continue;
+        }
 
         if ((state == read_note && line.empty()) || line[0] == '!')
         {
@@ -202,17 +247,70 @@ inline Scale readSCLStream(std::istream &inf)
     return res;
 }
 
-inline Scale readSCLFile(const std::filesystem::path &path)
+template <StreamablePath P> Scale readSCLFile(const P &path)
 {
-    std::ifstream inf(path);
+    auto inf = makeStream(path);
 
     if (!inf)
     {
-        throw TuningError("Unable to open file '" + path.u8string() + "'");
+        std::string errMsg = "Unable to open file";
+
+        if constexpr (PathWithU8<P>)
+        {
+            errMsg += " '";
+            errMsg += path.u8string();
+            errMsg += "'";
+        }
+#ifdef _WIN32
+        else if constexpr (U8PathConstructible<P>)
+        {
+            errMsg += " '";
+            errMsg += std::filesystem::u8path(path).u8string();
+            errMsg += "'";
+        }
+#endif
+        else if constexpr (NarrowPath<P>)
+        {
+            errMsg += " '";
+            errMsg += path;
+            errMsg += "'";
+        }
+
+        throw TuningError(errMsg);
     }
 
     auto res = readSCLStream(inf);
-    res.name = path.filename().stem().u8string();
+
+    if (res.name.empty())
+    {
+        if constexpr (PathWithStemU8<P>)
+        {
+            res.name = path.filename().stem().u8string();
+        }
+#ifdef _WIN32
+        else if constexpr (U8PathConstructible<P>)
+        {
+            res.name = std::filesystem::u8path(path).filename().stem().u8string();
+        }
+#endif
+        else if constexpr (NarrowPath<P>)
+        {
+            const char *p = nullptr;
+
+            if constexpr (std::same_as<P, const char *>)
+                p = path;
+            else
+                p = path.c_str();
+
+            std::string filename = p;
+            size_t sep = filename.find_last_of("/\\");
+            if (sep != std::string::npos)
+                filename = filename.substr(sep + 1);
+            size_t dot = filename.find_last_of('.');
+            res.name = (dot == std::string::npos) ? filename : filename.substr(0, dot);
+        }
+    }
+
     return res;
 }
 

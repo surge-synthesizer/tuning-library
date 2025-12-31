@@ -1,5 +1,4 @@
 // -*-c++-*-
-
 /**
  * Tunings.h
  * Copyright Paul Walker, 2019-2020
@@ -33,9 +32,10 @@
 #ifndef __INCLUDE_TUNINGS_H
 #define __INCLUDE_TUNINGS_H
 
+#include "TuningsConcepts.h"
+
 #include <string>
 #include <string_view>
-#include <filesystem>
 #include <vector>
 #include <iostream>
 #include <memory>
@@ -93,11 +93,9 @@ struct Scale
     std::string name;                  // The name in the SCL file. Informational only
     std::string description;           // The description in the SCL file. Informational only
     std::string rawText;               // The raw text of the SCL file used to create this Scale
-    int count;                         // The number of tones
+    int count{0};                      // The number of tones
     std::vector<Tone> tones;           // The tones
     std::vector<std::string> comments; // The comments
-
-    Scale() : name("empty scale"), description(""), rawText(""), count(0) {}
 };
 
 /**
@@ -186,6 +184,11 @@ class TuningError : public std::exception
 };
 
 /**
+ * makeStream returns a stream from a path
+ */
+std::ifstream makeStream(const StreamablePath auto &path);
+
+/**
  * readSCLStream returns a Scale from the SCL input stream
  */
 Scale readSCLStream(std::istream &inf);
@@ -193,7 +196,7 @@ Scale readSCLStream(std::istream &inf);
 /**
  * readSCLFile returns a Scale from the SCL File in path
  */
-Scale readSCLFile(const std::filesystem::path &path);
+Scale readSCLFile(const StreamablePath auto &path);
 
 /**
  * parseSCLData returns a scale from the SCL file contents in memory
