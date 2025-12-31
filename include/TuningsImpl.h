@@ -132,16 +132,16 @@ inline Tone toneFromString(const std::string &fullLine, int lineno)
     return t;
 }
 
-std::ifstream makeStream(StreamablePath auto &&path)
+std::ifstream makeStream(const StreamablePath auto &path)
 {
 #ifdef _WIN32
-    if constexpr (WidePath<decltype(path)>)
+    if constexpr (std::is_convertible_v<decltype(path), std::wstring>)
     {
         return std::ifstream(path);
     }
     else
     {
-        return std::ifstream(std::filesystem::u8path(std::forward<decltype(path)>(path)));
+        return std::ifstream(std::filesystem::u8path(path));
     }
 #else
     return std::ifstream(path);
@@ -251,50 +251,42 @@ inline Scale readSCLStream(std::istream &inf)
     return res;
 }
 
-template <StreamablePath P> Scale readSCLFile(P &&path)
+Scale readSCLFile(const StreamablePath auto &path)
 {
-    auto inf = makeStream(std::forward<P>(path));
-
-    auto pathToU8String = [](auto &&p) -> std::string
-    {
-#ifdef _WIN32
-        if constexpr (std::is_convertible_v<std::decay_t<decltype(p)>, std::wstring>)
-            return std::filesystem::u8path(p).u8string();
-        else
-#endif
-            return std::string(p); // char*, std::string, etc.
-    };
+    auto inf = makeStream(path);
 
     if (!inf)
     {
-        std::string errMsg = "Unable to open file '" + pathToU8String(path) + "'";
+        std::string errMsg = "Unable to open file '";
+
+#ifdef _WIN32
+        if constexpr (std::is_convertible_v<decltype(path), std::wstring>)
+            errMsg += std::filesystem::u8path(path).u8string();
+        else
+#endif
+            errMsg += std::string(path);
+
+        errMsg += "'";
         throw TuningError(errMsg);
     }
 
     auto res = readSCLStream(inf);
 
-    auto pathStem = [](auto &&p) -> std::string
+    if (res.name.empty())
     {
 #ifdef _WIN32
-        if constexpr (std::is_convertible_v<std::decay_t<decltype(p)>, std::wstring>)
-        {
-            return std::filesystem::u8path(p).filename().stem().u8string();
-        }
+        if constexpr (std::is_convertible_v<decltype(path), std::wstring>)
+            res.name = std::filesystem::u8path(path).filename().stem().u8string();
         else
 #endif
         {
-            std::string s = std::string(p);
+            std::string s = std::string(path);
             auto sep = s.find_last_of("/\\");
             if (sep != std::string::npos)
                 s = s.substr(sep + 1);
             auto dot = s.find_last_of('.');
-            return (dot == std::string::npos) ? s : s.substr(0, dot);
+            res.name = (dot == std::string::npos) ? s : s.substr(0, dot);
         }
-    };
-
-    if (res.name.empty())
-    {
-        res.name = pathStem(path);
     }
 
     return res;
