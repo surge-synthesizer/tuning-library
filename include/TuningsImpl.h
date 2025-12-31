@@ -273,10 +273,10 @@ Scale readSCLFile(const StreamablePath auto &path)
 #ifdef _WIN32
         if constexpr (PathWithU8<P>)
             errMsg += path.u8string();
-        else if constexpr (WidePath<P>)
-            errMsg += std::filesystem::path(path).u8string();
         else if constexpr (U8PathConstructible<P>)
             errMsg += std::filesystem::u8path(path).u8string();
+        else
+            errMsg += std::filesystem::path(path).u8string();
 #else
         if constexpr (PathWithU8<P>)
             errMsg += path.u8string();
@@ -295,10 +295,10 @@ Scale readSCLFile(const StreamablePath auto &path)
 #ifdef _WIN32
         if constexpr (PathWithStemU8<P>)
             res.name = path.filename().stem().u8string();
-        else if constexpr (WidePath<P>)
-            res.name = std::filesystem::path(path).filename().stem().u8string();
         else if constexpr (U8PathConstructible<P>)
             res.name = std::filesystem::u8path(path).filename().stem().u8string();
+        else
+            res.name = std::filesystem::path(path).filename().stem().u8string();
 #else
         if constexpr (PathWithStemU8<P>)
             res.name = path.filename().stem().u8string();
