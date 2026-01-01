@@ -20,7 +20,7 @@
 namespace Tunings
 {
 template <typename P>
-concept StreamablePath = requires(P p) { std::ifstream(std::decay_t<P>(p)); };
+concept StreamablePath = requires(P p) { std::ifstream(p); };
 
 #ifdef _WIN32
 template <typename P>
