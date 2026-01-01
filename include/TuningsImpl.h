@@ -132,7 +132,7 @@ inline Tone toneFromString(const std::string &fullLine, int lineno)
     return t;
 }
 
-std::ifstream makeStream(const StreamablePath auto &path)
+inline std::ifstream makeStream(const StreamablePath auto &path)
 {
     using P = std::remove_cvref_t<decltype(path)>;
 
@@ -249,7 +249,7 @@ inline Scale readSCLStream(std::istream &inf)
     return res;
 }
 
-Scale readSCLFile(const StreamablePath auto &path)
+inline Scale readSCLFile(const StreamablePath auto &path)
 {
     using P = std::remove_cvref_t<decltype(path)>;
 
@@ -533,18 +533,60 @@ inline KeyboardMapping readKBMStream(std::istream &inf)
     return res;
 }
 
-inline KeyboardMapping readKBMFile(std::string fname)
+inline KeyboardMapping readKBMFile(const StreamablePath auto &path)
 {
-    std::ifstream inf;
-    inf.open(fname);
-    if (!inf.is_open())
+    using P = std::remove_cvref_t<decltype(path)>;
+
+    auto inf = makeStream(path);
+
+    if (!inf)
     {
-        std::string s = "Unable to open file '" + fname + "'";
-        throw TuningError(s);
+        std::string errMsg = "Unable to open file '";
+
+#ifdef _WIN32
+        if constexpr (PathWithU8<P>)
+            errMsg += path.u8string();
+        else if constexpr (U8PathConstructible<P>)
+            errMsg += std::filesystem::u8path(path).u8string();
+        else
+            errMsg += std::filesystem::path(path).u8string();
+#else
+        if constexpr (PathWithU8<P>)
+            errMsg += path.u8string();
+        else
+            errMsg += std::string(path);
+#endif
+
+        errMsg += "'";
+        throw TuningError(errMsg);
     }
 
     auto res = readKBMStream(inf);
-    res.name = fname;
+
+    if (res.name.empty())
+    {
+#ifdef _WIN32
+        if constexpr (PathWithStemU8<P>)
+            res.name = path.filename().stem().u8string();
+        else if constexpr (U8PathConstructible<P>)
+            res.name = std::filesystem::u8path(path).filename().stem().u8string();
+        else
+            res.name = std::filesystem::path(path).filename().stem().u8string();
+#else
+        if constexpr (PathWithStemU8<P>)
+            res.name = path.filename().stem().u8string();
+        else
+        {
+            std::string s(path);
+            auto sep = s.find_last_of("/\\");
+            if (sep != std::string::npos)
+                s = s.substr(sep + 1);
+            auto dot = s.find_last_of('.');
+            res.name = (dot == std::string::npos) ? s : s.substr(0, dot);
+        }
+#endif
+    }
+
     return res;
 }
 

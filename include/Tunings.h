@@ -232,7 +232,7 @@ KeyboardMapping readKBMStream(std::istream &inf);
 /**
  * readKBMFile returns a KeyboardMapping from a KBM file name
  */
-KeyboardMapping readKBMFile(std::string fname);
+KeyboardMapping readKBMFile(const StreamablePath auto &path);
 
 /**
  * parseKBMData returns a KeyboardMapping from a KBM data in memory
