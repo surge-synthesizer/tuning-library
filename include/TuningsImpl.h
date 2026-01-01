@@ -132,7 +132,7 @@ inline Tone toneFromString(const std::string &fullLine, int lineno)
     return t;
 }
 
-std::ifstream makeStream(const StreamablePath auto &path)
+inline std::ifstream makeStream(const StreamablePath auto &path)
 {
     using P = std::remove_cvref_t<decltype(path)>;
 
@@ -249,7 +249,7 @@ inline Scale readSCLStream(std::istream &inf)
     return res;
 }
 
-Scale readSCLFile(const StreamablePath auto &path)
+inline Scale readSCLFile(const StreamablePath auto &path)
 {
     using P = std::remove_cvref_t<decltype(path)>;
 
@@ -533,7 +533,7 @@ inline KeyboardMapping readKBMStream(std::istream &inf)
     return res;
 }
 
-KeyboardMapping readKBMFile(const StreamablePath auto &path)
+inline KeyboardMapping readKBMFile(const StreamablePath auto &path)
 {
     using P = std::remove_cvref_t<decltype(path)>;
 
@@ -562,7 +562,7 @@ KeyboardMapping readKBMFile(const StreamablePath auto &path)
     }
 
     auto res = readKBMStream(inf);
-    
+
     if (res.name.empty())
     {
 #ifdef _WIN32
