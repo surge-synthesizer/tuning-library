@@ -196,6 +196,11 @@ Scale readSCLStream(std::istream &inf);
  */
 Scale readSCLFile(const StreamablePath auto &path);
 
+[[deprecated("readSCLFile(const std::string&) is unsafe, use path type instead")]]
+Scale readSCLFile(const std::string &path);
+[[deprecated("readSCLFile(const char*) is unsafe, use path type instead")]]
+Scale readSCLFile(const char *path);
+
 /**
  * parseSCLData returns a scale from the SCL file contents in memory
  */
@@ -231,6 +236,11 @@ KeyboardMapping readKBMStream(std::istream &inf);
  * readKBMFile returns a KeyboardMapping from a KBM file name
  */
 KeyboardMapping readKBMFile(const StreamablePath auto &path);
+
+[[deprecated("readKBMFile(const std::string&) is unsafe, use path type instead")]]
+KeyboardMapping readKBMFile(const std::string &path);
+[[deprecated("readKBMFile(const char*) is unsafe, use path type instead")]]
+KeyboardMapping readKBMFile(const char *path);
 
 /**
  * parseKBMData returns a KeyboardMapping from a KBM data in memory
