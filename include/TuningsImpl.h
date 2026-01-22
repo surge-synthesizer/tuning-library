@@ -26,10 +26,6 @@
 #include <limits>
 #include <algorithm>
 
-#ifdef _WIN32
-#include <filesystem>
-#endif
-
 namespace Tunings
 {
 // Thank you to: https://gist.github.com/josephwb/df09e3a71679461fc104
@@ -130,20 +126,6 @@ inline Tone toneFromString(const std::string &fullLine, int lineno)
     }
     t.floatValue = t.cents / 1200.0 + 1.0;
     return t;
-}
-
-inline std::ifstream makeStream(const StreamablePath auto &path)
-{
-    using P = std::remove_cvref_t<decltype(path)>;
-
-#ifdef _WIN32
-    if constexpr (U8PathConstructible<P>)
-        return std::ifstream(std::filesystem::u8path(path));
-    else
-        return std::ifstream(path);
-#else
-    return std::ifstream(path);
-#endif
 }
 
 inline Scale readSCLStream(std::istream &inf)
@@ -253,25 +235,16 @@ inline Scale readSCLFile(const StreamablePath auto &path)
 {
     using P = std::remove_cvref_t<decltype(path)>;
 
-    auto inf = makeStream(path);
+    auto inf = std::ifstream(path);
 
     if (!inf)
     {
         std::string errMsg = "Unable to open file '";
 
-#ifdef _WIN32
-        if constexpr (PathWithU8<P>)
-            errMsg += path.u8string();
-        else if constexpr (U8PathConstructible<P>)
-            errMsg += std::filesystem::u8path(path).u8string();
-        else
-            errMsg += std::filesystem::path(path).u8string();
-#else
         if constexpr (PathWithU8<P>)
             errMsg += path.u8string();
         else
             errMsg += std::string(path);
-#endif
 
         errMsg += "'";
         throw TuningError(errMsg);
@@ -281,14 +254,6 @@ inline Scale readSCLFile(const StreamablePath auto &path)
 
     if (res.name.empty())
     {
-#ifdef _WIN32
-        if constexpr (PathWithStemU8<P>)
-            res.name = path.filename().stem().u8string();
-        else if constexpr (U8PathConstructible<P>)
-            res.name = std::filesystem::u8path(path).filename().stem().u8string();
-        else
-            res.name = std::filesystem::path(path).filename().stem().u8string();
-#else
         if constexpr (PathWithStemU8<P>)
             res.name = path.filename().stem().u8string();
         else
@@ -300,7 +265,6 @@ inline Scale readSCLFile(const StreamablePath auto &path)
             auto dot = s.find_last_of('.');
             res.name = (dot == std::string::npos) ? s : s.substr(0, dot);
         }
-#endif
     }
 
     return res;
@@ -537,25 +501,16 @@ inline KeyboardMapping readKBMFile(const StreamablePath auto &path)
 {
     using P = std::remove_cvref_t<decltype(path)>;
 
-    auto inf = makeStream(path);
+    auto inf = std::ifstream(path);
 
     if (!inf)
     {
         std::string errMsg = "Unable to open file '";
 
-#ifdef _WIN32
-        if constexpr (PathWithU8<P>)
-            errMsg += path.u8string();
-        else if constexpr (U8PathConstructible<P>)
-            errMsg += std::filesystem::u8path(path).u8string();
-        else
-            errMsg += std::filesystem::path(path).u8string();
-#else
         if constexpr (PathWithU8<P>)
             errMsg += path.u8string();
         else
             errMsg += std::string(path);
-#endif
 
         errMsg += "'";
         throw TuningError(errMsg);
@@ -565,14 +520,6 @@ inline KeyboardMapping readKBMFile(const StreamablePath auto &path)
 
     if (res.name.empty())
     {
-#ifdef _WIN32
-        if constexpr (PathWithStemU8<P>)
-            res.name = path.filename().stem().u8string();
-        else if constexpr (U8PathConstructible<P>)
-            res.name = std::filesystem::u8path(path).filename().stem().u8string();
-        else
-            res.name = std::filesystem::path(path).filename().stem().u8string();
-#else
         if constexpr (PathWithStemU8<P>)
             res.name = path.filename().stem().u8string();
         else
@@ -584,7 +531,6 @@ inline KeyboardMapping readKBMFile(const StreamablePath auto &path)
             auto dot = s.find_last_of('.');
             res.name = (dot == std::string::npos) ? s : s.substr(0, dot);
         }
-#endif
     }
 
     return res;
