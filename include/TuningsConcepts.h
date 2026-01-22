@@ -20,12 +20,12 @@ concept StreamablePath = requires(const P &p) { std::ifstream{p}; };
 
 template <typename P>
 concept PathWithU8 = requires(const P &p) {
-    { p.u8string() } -> std::convertible_to<std::string>;
+    { p.u8string() };
 };
 
 template <typename P>
 concept PathWithStemU8 = requires(const P &p) {
-    { p.filename().stem().u8string() } -> std::convertible_to<std::string>;
+    { p.filename().stem().u8string() };
 };
 } // namespace Tunings
 

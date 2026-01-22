@@ -242,9 +242,18 @@ inline Scale readSCLFile(const StreamablePath auto &path)
         std::string errMsg = "Unable to open file '";
 
         if constexpr (PathWithU8<P>)
+        {
+#if defined(__cpp_char8_t)
+            const auto &s = path.u8string();
+            errMsg.append(reinterpret_cast<const char *>(s.data()), s.size());
+#else
             errMsg += path.u8string();
+#endif
+        }
         else
+        {
             errMsg += std::string(path);
+        }
 
         errMsg += "'";
         throw TuningError(errMsg);
@@ -255,7 +264,14 @@ inline Scale readSCLFile(const StreamablePath auto &path)
     if (res.name.empty())
     {
         if constexpr (PathWithStemU8<P>)
+        {
+#if defined(__cpp_char8_t)
+            const auto &s = path.filename().stem().u8string();
+            res.name.assign(reinterpret_cast<const char *>(s.data()), s.size());
+#else
             res.name = path.filename().stem().u8string();
+#endif
+        }
         else
         {
             std::string s(path);
@@ -508,9 +524,18 @@ inline KeyboardMapping readKBMFile(const StreamablePath auto &path)
         std::string errMsg = "Unable to open file '";
 
         if constexpr (PathWithU8<P>)
+        {
+#if defined(__cpp_char8_t)
+            const auto &s = path.u8string();
+            errMsg.append(reinterpret_cast<const char *>(s.data()), s.size());
+#else
             errMsg += path.u8string();
+#endif
+        }
         else
+        {
             errMsg += std::string(path);
+        }
 
         errMsg += "'";
         throw TuningError(errMsg);
@@ -521,7 +546,14 @@ inline KeyboardMapping readKBMFile(const StreamablePath auto &path)
     if (res.name.empty())
     {
         if constexpr (PathWithStemU8<P>)
+        {
+#if defined(__cpp_char8_t)
+            const auto &s = path.filename().stem().u8string();
+            res.name.assign(reinterpret_cast<const char *>(s.data()), s.size());
+#else
             res.name = path.filename().stem().u8string();
+#endif
+        }
         else
         {
             std::string s(path);
