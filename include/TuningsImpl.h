@@ -231,6 +231,10 @@ inline Scale readSCLStream(std::istream &inf)
     return res;
 }
 
+inline Scale readSCLFile(const std::string &path) { return readSCLFile<std::string>(path); }
+
+inline Scale readSCLFile(const char *path) { return readSCLFile<std::string>(std::string(path)); }
+
 inline Scale readSCLFile(const StreamablePath auto &path)
 {
     using P = std::remove_cvref_t<decltype(path)>;
@@ -511,6 +515,16 @@ inline KeyboardMapping readKBMStream(std::istream &inf)
 
     res.rawText = rawOSS.str();
     return res;
+}
+
+inline KeyboardMapping readKBMFile(const std::string &path)
+{
+    return readKBMFile<std::string>(path);
+}
+
+inline KeyboardMapping readKBMFile(const char *path)
+{
+    return readKBMFile<std::string>(std::string(path));
 }
 
 inline KeyboardMapping readKBMFile(const StreamablePath auto &path)
