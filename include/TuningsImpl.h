@@ -620,10 +620,12 @@ inline Tuning::Tuning(const Scale &s_, const KeyboardMapping &k_, bool allowTuni
         // tuning note. Both bounds come from a .kbm file, so a file naming a
         // distant tuning constant note spins here for as many iterations as the
         // gap divided by the count - billions of them for a large value, with
-        // useMiddleNote overflowing int along the way. Nothing musical needs more
-        // than a handful of shifts, so stop and report it the way the rest of this
-        // constructor reports a mapping it cannot use.
-        constexpr int maxWindowShifts{1 << 20};
+        // useMiddleNote overflowing int along the way. In legitimate files these
+        // notes are MIDI notes, so the widest real case is a single key mapping
+        // walking the whole 0..127 range, which is 127 shifts. Stop well past that
+        // and report it the way the rest of this constructor reports a mapping it
+        // cannot use.
+        constexpr int maxWindowShifts{1024};
         int shifts{0};
 
         auto tooFar = [&k]()
