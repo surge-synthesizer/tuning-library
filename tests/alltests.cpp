@@ -1387,6 +1387,15 @@ TEST_CASE("Loading Ableton scales")
                           Tunings::TuningError);
     }
 
+    SECTION("ASCL reference pitch too large for an int")
+    {
+        // The REFERENCE_PITCH regex only promises digits, not that they fit in an
+        // int, so a long enough run of them made stoi throw std::out_of_range and
+        // leave the library by a route callers do not catch.
+        REQUIRE_THROWS_AS(Tunings::readASCLFile(testFile("bad/bad-reference-pitch.ascl")),
+                          Tunings::TuningError);
+    }
+
     SECTION("Tuning read with ASCL")
     {
         auto s = Tunings::readASCLFile(testFile("rast.ascl"));

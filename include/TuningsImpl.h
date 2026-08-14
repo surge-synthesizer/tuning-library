@@ -24,6 +24,7 @@
 #include <regex>
 #include <numeric>
 #include <limits>
+#include <stdexcept>
 #include <algorithm>
 
 namespace Tunings
@@ -1156,8 +1157,21 @@ inline AbletonScale readASCLStream(std::istream &inf)
             if (std::regex_match(rp, reference_pitch,
                                  std::regex("\\s*(\\d+)\\s*(\\d+)\\s*([\\d.]+)\\s*$")))
             {
-                as.referencePitchOctave = std::stoi(reference_pitch[1]);
-                as.referencePitchIndex = std::stoi(reference_pitch[2]);
+                // The regex only promises digits, not that they fit in an int, so a
+                // long enough run of them makes stoi throw std::out_of_range. That
+                // would leave this function by a route callers don't expect, since
+                // everything else here reports a bad entry as a TuningError.
+                try
+                {
+                    as.referencePitchOctave = std::stoi(reference_pitch[1]);
+                    as.referencePitchIndex = std::stoi(reference_pitch[2]);
+                }
+                catch (const std::out_of_range &)
+                {
+                    throw TuningError("Invalid REFERENCE_PITCH entry '" + rp +
+                                      "': octave or index is too large");
+                }
+
                 as.referencePitchFreq = locale_atof(reference_pitch.str(3).c_str());
                 as.keyboardMapping.tuningFrequency = as.referencePitchFreq;
                 as.keyboardMapping.tuningPitch = as.keyboardMapping.tuningFrequency / MIDI_0_FREQ;
