@@ -546,6 +546,26 @@ TEST_CASE("Scala KBMs from Issue 42")
     }
 }
 
+TEST_CASE("KBM tuning constant note far outside the mapping")
+{
+    // The constructor walks the mapping window one mapping at a time until it
+    // spans the tuning constant note, and both numbers come from the file. A
+    // distant one used to spin for billions of iterations rather than return.
+    SECTION("a distant tuning constant note is reported, not chased")
+    {
+        auto k = Tunings::parseKBMData("1\n0\n127\n60\n2000000000\n440.0\n12\n0\n");
+        auto s = Tunings::evenTemperament12NoteScale();
+        REQUIRE_THROWS_AS(Tunings::Tuning(s, k), Tunings::TuningError);
+    }
+
+    SECTION("an ordinary distance still maps")
+    {
+        auto k = Tunings::parseKBMData("1\n0\n127\n60\n127\n440.0\n12\n0\n");
+        auto s = Tunings::evenTemperament12NoteScale();
+        REQUIRE_NOTHROW(Tunings::Tuning(s, k));
+    }
+}
+
 TEST_CASE("KBM ReOrdering")
 {
     SECTION("Non Monotonic KBM note")
