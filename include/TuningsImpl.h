@@ -616,22 +616,47 @@ inline Tuning::Tuning(const Scale &s_, const KeyboardMapping &k_, bool allowTuni
     int useMiddleNote{k.middleNote};
     if (k.count > 0)
     {
+        // These walk the mapping window one mapping at a time until it spans the
+        // tuning note. Both bounds come from a .kbm file, so a file naming a
+        // distant tuning constant note spins here for as many iterations as the
+        // gap divided by the count - billions of them for a large value, with
+        // useMiddleNote overflowing int along the way. In legitimate files these
+        // notes are MIDI notes, so the widest real case is a single key mapping
+        // walking the whole 0..127 range, which is 127 shifts. Stop well past that
+        // and report it the way the rest of this constructor reports a mapping it
+        // cannot use.
+        constexpr int maxWindowShifts{1024};
+        int shifts{0};
+
+        auto tooFar = [&k]()
+        {
+            return TuningError(
+                "Keyboard mapping cannot reach the tuning constant note. The mapping has " +
+                std::to_string(k.count) + " keys starting at " + std::to_string(k.middleNote) +
+                ", and the tuning constant note is " + std::to_string(k.tuningConstantNote) +
+                ", which is too far away to map.");
+        };
+
         // Is the KBM not spanning the tuning note
         auto mapStart = useMiddleNote;
         auto mapEnd = useMiddleNote + k.count;
         while (mapStart > k.tuningConstantNote)
         {
+            if (++shifts > maxWindowShifts)
+                throw tooFar();
+
             useMiddleNote -= k.count;
             mapStart = useMiddleNote;
             mapEnd = useMiddleNote + k.count;
-            // throw std::logic_error("Blah");
         }
         while (mapEnd < k.tuningConstantNote)
         {
+            if (++shifts > maxWindowShifts)
+                throw tooFar();
+
             useMiddleNote += k.count;
             mapStart = useMiddleNote;
             mapEnd = useMiddleNote + k.count;
-            // throw std::logic_error("Blah");
         }
     }
 
