@@ -1253,6 +1253,22 @@ inline int AbletonScale::midiNoteForScalePosition(int scalePosition)
 
 inline int AbletonScale::scalePositionForFrequency(double freq)
 {
+    // This walks scale positions one step at a time and stops at the first one
+    // that overshoots freq. That only ever happens if frequencyForScalePosition
+    // is unbounded and ascending in n, which needs the scale's period - the
+    // cents of its last tone - to be finite and strictly positive. Check that up
+    // front so a malformed scale gets a diagnosis instead of a spinning loop.
+    if (scale.tones.empty() || !std::isfinite(scale.tones.back().cents) ||
+        scale.tones.back().cents <= 0)
+    {
+        std::string s = "Unable to locate a scale position for frequency " +
+                        std::to_string(freq) + ": the scale's last tone must be a finite " +
+                        "ascending interval, but it is ";
+        s += scale.tones.empty() ? std::string("absent")
+                                 : std::to_string(scale.tones.back().cents) + " cents";
+        throw TuningError(s);
+    }
+
     auto n = 0;
     auto r = frequencyForScalePosition(n);
     auto o = freq - r;
@@ -1262,8 +1278,25 @@ inline int AbletonScale::scalePositionForFrequency(double freq)
     auto l = false;
     if (s <= std::numeric_limits<double>::epsilon())
         return n;
+
+    // A finite ascending period is necessary but not sufficient: a zero or
+    // non-finite reference pitch flattens frequencyForScalePosition just as
+    // effectively. Cap the walk so any remaining way to break the ascent
+    // surfaces as a TuningError rather than overflowing n. The library's own
+    // ASCL corpus settles in one or two steps, so this bound is never
+    // approached by a well-formed scale.
+    constexpr int maxSearchSteps = 1 << 20;
+    int steps = 0;
+
     while (!l)
     {
+        if (++steps > maxSearchSteps)
+        {
+            throw TuningError("Unable to locate a scale position for frequency " +
+                              std::to_string(freq) + " after " +
+                              std::to_string(maxSearchSteps) +
+                              " steps: the scale does not ascend towards it");
+        }
         n += i;
         r = frequencyForScalePosition(n);
         o = std::abs(freq - r);
