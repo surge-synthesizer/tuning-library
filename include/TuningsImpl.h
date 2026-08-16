@@ -1061,12 +1061,7 @@ inline Tuning Tuning::withSkippedNotesInterpolated() const
             while (nxt < N && scalepositiontable[nxt] < 0)
                 nxt++;
 
-            // A partially mapped keyboard can leave every entry below i
-            // unmapped, in which case prv walks to -1, or every entry above it,
-            // in which case nxt walks to N. There is no pair to interpolate
-            // between then, and lptable[prv] / lptable[nxt] read off the end of
-            // the table. Clamp to whichever neighbour was found and leave the
-            // entry as the tuning left it when neither was.
+            // clamp to whichever neighbour exists; dont read off either end
             if (prv < 0 && nxt >= N)
                 continue;
 
@@ -1183,10 +1178,7 @@ inline AbletonScale readASCLStream(std::istream &inf)
                 search_start = note_names.suffix().first;
             }
 
-            // Validate the count BEFORE rotating. An empty payload (for instance
-            // "! @ABL NOTE_NAMES " with a trailing space) leaves names empty, and
-            // names.begin() + 1 is then past the end, so the rotate is undefined
-            // behaviour that runs before the check which would have rejected it.
+            // check the count before rotating; an empty list has no begin() + 1
             as.notationMapping.count = as.notationMapping.names.size();
             if (as.notationMapping.count != as.scale.count)
             {
@@ -1274,11 +1266,7 @@ inline int AbletonScale::midiNoteForScalePosition(int scalePosition)
 
 inline int AbletonScale::scalePositionForFrequency(double freq)
 {
-    // This walks scale positions one step at a time and stops at the first one
-    // that overshoots freq. That only ever happens if frequencyForScalePosition
-    // is unbounded and ascending in n, which needs the scale's period - the
-    // cents of its last tone - to be finite and strictly positive. Check that up
-    // front so a malformed scale gets a diagnosis instead of a spinning loop.
+    // the walk below only terminates if the period ascends, so require that
     if (scale.tones.empty() || !std::isfinite(scale.tones.back().cents) ||
         scale.tones.back().cents <= 0)
     {
@@ -1300,12 +1288,7 @@ inline int AbletonScale::scalePositionForFrequency(double freq)
     if (s <= std::numeric_limits<double>::epsilon())
         return n;
 
-    // A finite ascending period is necessary but not sufficient: a zero or
-    // non-finite reference pitch flattens frequencyForScalePosition just as
-    // effectively. Cap the walk so any remaining way to break the ascent
-    // surfaces as a TuningError rather than overflowing n. The library's own
-    // ASCL corpus settles in one or two steps, so this bound is never
-    // approached by a well-formed scale.
+    // backstop so a flat pitch map errors out instead of overflowing n
     constexpr int maxSearchSteps = 1 << 20;
     int steps = 0;
 
