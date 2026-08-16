@@ -1060,9 +1060,30 @@ inline Tuning Tuning::withSkippedNotesInterpolated() const
                 prv--;
             while (nxt < N && scalepositiontable[nxt] < 0)
                 nxt++;
-            float dist = (float)(nxt - prv);
-            float frac = (float)(i - prv) / dist;
-            res.lptable[i] = (1.0 - frac) * lptable[prv] + frac * lptable[nxt];
+
+            // A partially mapped keyboard can leave every entry below i
+            // unmapped, in which case prv walks to -1, or every entry above it,
+            // in which case nxt walks to N. There is no pair to interpolate
+            // between then, and lptable[prv] / lptable[nxt] read off the end of
+            // the table. Clamp to whichever neighbour was found and leave the
+            // entry as the tuning left it when neither was.
+            if (prv < 0 && nxt >= N)
+                continue;
+
+            if (prv < 0)
+            {
+                res.lptable[i] = lptable[nxt];
+            }
+            else if (nxt >= N)
+            {
+                res.lptable[i] = lptable[prv];
+            }
+            else
+            {
+                float dist = (float)(nxt - prv);
+                float frac = (float)(i - prv) / dist;
+                res.lptable[i] = (1.0 - frac) * lptable[prv] + frac * lptable[nxt];
+            }
             res.ptable[i] = pow(2.0, res.lptable[i]);
         }
     }
@@ -1261,8 +1282,8 @@ inline int AbletonScale::scalePositionForFrequency(double freq)
     if (scale.tones.empty() || !std::isfinite(scale.tones.back().cents) ||
         scale.tones.back().cents <= 0)
     {
-        std::string s = "Unable to locate a scale position for frequency " +
-                        std::to_string(freq) + ": the scale's last tone must be a finite " +
+        std::string s = "Unable to locate a scale position for frequency " + std::to_string(freq) +
+                        ": the scale's last tone must be a finite " +
                         "ascending interval, but it is ";
         s += scale.tones.empty() ? std::string("absent")
                                  : std::to_string(scale.tones.back().cents) + " cents";
@@ -1293,8 +1314,7 @@ inline int AbletonScale::scalePositionForFrequency(double freq)
         if (++steps > maxSearchSteps)
         {
             throw TuningError("Unable to locate a scale position for frequency " +
-                              std::to_string(freq) + " after " +
-                              std::to_string(maxSearchSteps) +
+                              std::to_string(freq) + " after " + std::to_string(maxSearchSteps) +
                               " steps: the scale does not ascend towards it");
         }
         n += i;
