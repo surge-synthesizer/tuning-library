@@ -1162,10 +1162,10 @@ inline AbletonScale readASCLStream(std::istream &inf)
                 search_start = note_names.suffix().first;
             }
 
-            // Move first note to last to correspond to scale.tones
-            std::rotate(as.notationMapping.names.begin(), as.notationMapping.names.begin() + 1,
-                        as.notationMapping.names.end());
-
+            // Validate the count BEFORE rotating. An empty payload (for instance
+            // "! @ABL NOTE_NAMES " with a trailing space) leaves names empty, and
+            // names.begin() + 1 is then past the end, so the rotate is undefined
+            // behaviour that runs before the check which would have rejected it.
             as.notationMapping.count = as.notationMapping.names.size();
             if (as.notationMapping.count != as.scale.count)
             {
@@ -1173,6 +1173,13 @@ inline AbletonScale readASCLStream(std::istream &inf)
                                 std::to_string(as.scale.count) + " entries but received " +
                                 std::to_string(as.notationMapping.count);
                 throw TuningError(s);
+            }
+
+            // Move first note to last to correspond to scale.tones
+            if (!as.notationMapping.names.empty())
+            {
+                std::rotate(as.notationMapping.names.begin(), as.notationMapping.names.begin() + 1,
+                            as.notationMapping.names.end());
             }
         }
         else if (command[1] == "REFERENCE_PITCH")
