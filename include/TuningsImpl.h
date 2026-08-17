@@ -1061,10 +1061,7 @@ inline Tuning Tuning::withSkippedNotesInterpolated() const
             while (nxt < N && scalepositiontable[nxt] < 0)
                 nxt++;
 
-            // clamp to whichever neighbour exists; dont read off either end
-            if (prv < 0 && nxt >= N)
-                continue;
-
+            // clamp to whichever neighbour exists
             if (prv < 0)
             {
                 res.lptable[i] = lptable[nxt];
@@ -1288,8 +1285,8 @@ inline int AbletonScale::scalePositionForFrequency(double freq)
     if (s <= std::numeric_limits<double>::epsilon())
         return n;
 
-    // backstop so a flat pitch map errors out instead of overflowing n
-    constexpr int maxSearchSteps = 1 << 20;
+    // the walk moves one scale degree per step, so bound it by the scale
+    const int maxSearchSteps = 128 * (int)scale.tones.size();
     int steps = 0;
 
     while (!l)
