@@ -1060,9 +1060,22 @@ inline Tuning Tuning::withSkippedNotesInterpolated() const
                 prv--;
             while (nxt < N && scalepositiontable[nxt] < 0)
                 nxt++;
-            float dist = (float)(nxt - prv);
-            float frac = (float)(i - prv) / dist;
-            res.lptable[i] = (1.0 - frac) * lptable[prv] + frac * lptable[nxt];
+
+            // clamp to whichever neighbour exists
+            if (prv < 0)
+            {
+                res.lptable[i] = lptable[nxt];
+            }
+            else if (nxt >= N)
+            {
+                res.lptable[i] = lptable[prv];
+            }
+            else
+            {
+                float dist = (float)(nxt - prv);
+                float frac = (float)(i - prv) / dist;
+                res.lptable[i] = (1.0 - frac) * lptable[prv] + frac * lptable[nxt];
+            }
             res.ptable[i] = pow(2.0, res.lptable[i]);
         }
     }
@@ -1162,10 +1175,7 @@ inline AbletonScale readASCLStream(std::istream &inf)
                 search_start = note_names.suffix().first;
             }
 
-            // Move first note to last to correspond to scale.tones
-            std::rotate(as.notationMapping.names.begin(), as.notationMapping.names.begin() + 1,
-                        as.notationMapping.names.end());
-
+            // check the count before rotating; an empty list has no begin() + 1
             as.notationMapping.count = as.notationMapping.names.size();
             if (as.notationMapping.count != as.scale.count)
             {
@@ -1173,6 +1183,13 @@ inline AbletonScale readASCLStream(std::istream &inf)
                                 std::to_string(as.scale.count) + " entries but received " +
                                 std::to_string(as.notationMapping.count);
                 throw TuningError(s);
+            }
+
+            // Move first note to last to correspond to scale.tones
+            if (!as.notationMapping.names.empty())
+            {
+                std::rotate(as.notationMapping.names.begin(), as.notationMapping.names.begin() + 1,
+                            as.notationMapping.names.end());
             }
         }
         else if (command[1] == "REFERENCE_PITCH")
@@ -1246,6 +1263,18 @@ inline int AbletonScale::midiNoteForScalePosition(int scalePosition)
 
 inline int AbletonScale::scalePositionForFrequency(double freq)
 {
+    // the walk below only terminates if the period ascends, so require that
+    if (scale.tones.empty() || !std::isfinite(scale.tones.back().cents) ||
+        scale.tones.back().cents <= 0)
+    {
+        std::string s = "Unable to locate a scale position for frequency " + std::to_string(freq) +
+                        ": the scale's last tone must be a finite " +
+                        "ascending interval, but it is ";
+        s += scale.tones.empty() ? std::string("absent")
+                                 : std::to_string(scale.tones.back().cents) + " cents";
+        throw TuningError(s);
+    }
+
     auto n = 0;
     auto r = frequencyForScalePosition(n);
     auto o = freq - r;
@@ -1255,8 +1284,19 @@ inline int AbletonScale::scalePositionForFrequency(double freq)
     auto l = false;
     if (s <= std::numeric_limits<double>::epsilon())
         return n;
+
+    // the walk moves one scale degree per step, so bound it by the scale
+    const int maxSearchSteps = 128 * (int)scale.tones.size();
+    int steps = 0;
+
     while (!l)
     {
+        if (++steps > maxSearchSteps)
+        {
+            throw TuningError("Unable to locate a scale position for frequency " +
+                              std::to_string(freq) + " after " + std::to_string(maxSearchSteps) +
+                              " steps: the scale does not ascend towards it");
+        }
         n += i;
         r = frequencyForScalePosition(n);
         o = std::abs(freq - r);
