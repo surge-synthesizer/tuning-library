@@ -37,14 +37,14 @@ TEST_CASE("Loading tuning files")
 {
     SECTION("Load a 12 tone standard tuning")
     {
-        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("12-intune.scl"));
         REQUIRE(s.count == 12);
         // FIXME - write a lot more here obviously
     }
 
     SECTION("Load a 12 tone standard tuning with no description")
     {
-        auto s = Tunings::readSCLFile(testFile("12-intune-nodesc.scl"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("12-intune-nodesc.scl"));
         REQUIRE(s.count == 12);
         // FIXME - write a lot more here obviously
     }
@@ -68,7 +68,7 @@ TEST_CASE("Loading tuning files")
 
     SECTION("Comments read properly")
     {
-        auto s = Tunings::readSCLFile(testFile("rast.ascl"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("rast.ascl"));
         REQUIRE(s.comments.size() == 24);
     }
 }
@@ -77,7 +77,7 @@ TEST_CASE("Identity Tuning Tests")
 {
     SECTION("12-intune tunes properly")
     {
-        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("12-intune.scl"));
         REQUIRE(s.count == 12);
         Tunings::Tuning t(s);
         REQUIRE(t.frequencyForMidiNote(69) == Approx(440.0).margin(1e-10));
@@ -87,7 +87,7 @@ TEST_CASE("Identity Tuning Tests")
 
     SECTION("12-intune doubles properly")
     {
-        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("12-intune.scl"));
         Tunings::Tuning t(s);
         for (int i = 0; i < 12; ++i)
         {
@@ -109,7 +109,7 @@ TEST_CASE("Identity Tuning Tests")
 
     SECTION("Scaling is constant")
     {
-        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("12-intune.scl"));
         Tunings::Tuning t(s);
         auto f60 = t.frequencyForMidiNote(60);
         auto fs60 = t.frequencyForMidiNoteScaledByMidi0(60);
@@ -175,7 +175,7 @@ TEST_CASE("Internal Constraints between Measures")
         for (auto f : testSCLs())
         {
             INFO("Testing Constraints with " << f);
-            auto s = Tunings::readSCLFile(testFile(f));
+            auto s = Tunings::readSCLFile<std::string>(testFile(f));
             Tunings::Tuning t(s);
 
             for (int i = 0; i < 127; ++i)
@@ -193,7 +193,7 @@ TEST_CASE("Internal Constraints between Measures")
         for (auto f : testKBMs())
         {
             INFO("Testing Constraints with " << f);
-            auto k = Tunings::readKBMFile(testFile(f));
+            auto k = Tunings::readKBMFile<std::string>(testFile(f));
             Tunings::Tuning t(k);
 
             for (int i = 0; i < 127; ++i)
@@ -212,8 +212,8 @@ TEST_CASE("Internal Constraints between Measures")
             for (auto fk : testKBMs())
             {
                 INFO("Testing Constraints with " << fs << " " << fk);
-                auto s = Tunings::readSCLFile(testFile(fs));
-                auto k = Tunings::readKBMFile(testFile(fk));
+                auto s = Tunings::readSCLFile<std::string>(testFile(fs));
+                auto k = Tunings::readKBMFile<std::string>(testFile(fk));
 
                 if (k.octaveDegrees > s.count)
                     continue; // don't test this verion; trap it below as an error case
@@ -252,8 +252,8 @@ TEST_CASE("Internal Constraints between Measures")
                 for (auto fk : testKBMs())
                 {
                     INFO("Testing Constraints with " << fs << " " << fk);
-                    auto s = Tunings::readSCLFile(testFile(fs));
-                    auto k = Tunings::readKBMFile(testFile(fk));
+                    auto s = Tunings::readSCLFile<std::string>(testFile(fs));
+                    auto k = Tunings::readKBMFile<std::string>(testFile(fk));
 
                     if (k.octaveDegrees > s.count)
                         continue; // don't test this verion; trap it below as an error case
@@ -277,7 +277,7 @@ TEST_CASE("Several Sample Scales")
 {
     SECTION("Non Monotonic 12 note")
     {
-        auto s = Tunings::readSCLFile(testFile("12-shuffled.scl"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("12-shuffled.scl"));
         Tunings::Tuning t(s);
         REQUIRE(s.count == 12);
         REQUIRE(t.logScaledFrequencyForMidiNote(60) == 5);
@@ -294,7 +294,7 @@ TEST_CASE("Several Sample Scales")
 
     SECTION("31 edo")
     {
-        auto s = Tunings::readSCLFile(testFile("31edo.scl"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("31edo.scl"));
         Tunings::Tuning t(s);
         REQUIRE(s.count == 31);
         REQUIRE(t.logScaledFrequencyForMidiNote(60) == 5);
@@ -310,7 +310,7 @@ TEST_CASE("Several Sample Scales")
 
     SECTION("ED3-17")
     {
-        auto s = Tunings::readSCLFile(testFile("ED3-17.scl"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("ED3-17.scl"));
         Tunings::Tuning t(s);
         REQUIRE(s.count == 17);
         REQUIRE(t.logScaledFrequencyForMidiNote(60) == 5);
@@ -326,7 +326,7 @@ TEST_CASE("Several Sample Scales")
 
     SECTION("ED4-17")
     {
-        auto s = Tunings::readSCLFile(testFile("ED4-17.scl"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("ED4-17.scl"));
         Tunings::Tuning t(s);
         REQUIRE(s.count == 17);
         REQUIRE(t.logScaledFrequencyForMidiNote(60) == 5);
@@ -342,7 +342,7 @@ TEST_CASE("Several Sample Scales")
 
     SECTION("6 exact")
     {
-        auto s = Tunings::readSCLFile(testFile("6-exact.scl"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("6-exact.scl"));
         Tunings::Tuning t(s);
         REQUIRE(s.count == 6);
         REQUIRE(t.logScaledFrequencyForMidiNote(60) == 5);
@@ -356,7 +356,7 @@ TEST_CASE("Several Sample Scales")
 
     SECTION("Carlos Alpha (one step scale)")
     {
-        auto s = Tunings::readSCLFile(testFile("carlos-alpha.scl"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("carlos-alpha.scl"));
         Tunings::Tuning t(s);
         REQUIRE(s.count == 1);
         REQUIRE(t.logScaledFrequencyForMidiNote(60) == 5);
@@ -373,7 +373,7 @@ TEST_CASE("Remapping frequency with non-12-length scales")
 {
     SECTION("6 exact")
     {
-        auto s = Tunings::readSCLFile(testFile("6-exact.scl"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("6-exact.scl"));
         Tunings::Tuning t(s);
 
         for (int i = 0; i < 100; ++i)
@@ -407,7 +407,7 @@ TEST_CASE("Remapping frequency with non-12-length scales")
 
     SECTION("31 edo")
     {
-        auto s = Tunings::readSCLFile(testFile("31edo.scl"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("31edo.scl"));
         Tunings::Tuning t(s);
 
         for (int i = 0; i < 100; ++i)
@@ -441,7 +441,7 @@ TEST_CASE("Remapping frequency with non-12-length scales")
 
     SECTION("ED4-17")
     {
-        auto s = Tunings::readSCLFile(testFile("ED4-17.scl"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("ED4-17.scl"));
         Tunings::Tuning t(s);
 
         for (int i = 0; i < 100; ++i)
@@ -475,7 +475,7 @@ TEST_CASE("Remapping frequency with non-12-length scales")
 
     SECTION("ED3-17")
     {
-        auto s = Tunings::readSCLFile(testFile("ED3-17.scl"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("ED3-17.scl"));
         Tunings::Tuning t(s);
 
         for (int i = 0; i < 100; ++i)
@@ -512,8 +512,8 @@ TEST_CASE("KBMs with Gaps")
 {
     SECTION("12 Intune with Gap")
     {
-        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
-        auto k = Tunings::readKBMFile(testFile("mapping-whitekeys-c261.kbm"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("12-intune.scl"));
+        auto k = Tunings::readKBMFile<std::string>(testFile("mapping-whitekeys-c261.kbm"));
         Tunings::Tuning t(s);
         Tunings::Tuning tm(s, k);
 
@@ -535,13 +535,13 @@ TEST_CASE("Scala KBMs from Issue 42")
 {
     SECTION("Piano.kbm")
     {
-        auto k = Tunings::readKBMFile(testFile("piano.kbm"));
+        auto k = Tunings::readKBMFile<std::string>(testFile("piano.kbm"));
         REQUIRE(k.count == 0);
     }
 
     SECTION("128.kbm")
     {
-        auto k = Tunings::readKBMFile(testFile("128.kbm"));
+        auto k = Tunings::readKBMFile<std::string>(testFile("128.kbm"));
         REQUIRE(k.count == 0);
     }
 }
@@ -570,8 +570,8 @@ TEST_CASE("KBM ReOrdering")
 {
     SECTION("Non Monotonic KBM note")
     {
-        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
-        auto k = Tunings::readKBMFile(testFile("shuffle-a440-constant.kbm"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("12-intune.scl"));
+        auto k = Tunings::readKBMFile<std::string>(testFile("shuffle-a440-constant.kbm"));
         Tunings::Tuning t(s, k);
 
         REQUIRE(s.count == 12);
@@ -593,13 +593,13 @@ TEST_CASE("Exceptions and Bad Files")
 {
     SECTION("Read Non-present files")
     {
-        REQUIRE_THROWS_AS(Tunings::readSCLFile("blahlfdsfds"), Tunings::TuningError);
-        REQUIRE_THROWS_AS(Tunings::readKBMFile("blahlfdsfds"), Tunings::TuningError);
+        REQUIRE_THROWS_AS(Tunings::readSCLFile<std::string>("blahlfdsfds"), Tunings::TuningError);
+        REQUIRE_THROWS_AS(Tunings::readKBMFile<std::string>("blahlfdsfds"), Tunings::TuningError);
 
         // Lets make sure what is reasonable
         try
         {
-            Tunings::readSCLFile("MISSING");
+            Tunings::readSCLFile<std::string>("MISSING");
         }
         catch (const Tunings::TuningError &e)
         {
@@ -608,7 +608,7 @@ TEST_CASE("Exceptions and Bad Files")
 
         try
         {
-            Tunings::readKBMFile("MISSING");
+            Tunings::readKBMFile<std::string>("MISSING");
         }
         catch (const Tunings::TuningError &e)
         {
@@ -623,8 +623,8 @@ TEST_CASE("Exceptions and Bad Files")
             for (auto fk : testKBMs())
             {
                 INFO("Looking for mis-sized pairs " << fs << " " << fk);
-                auto s = Tunings::readSCLFile(testFile(fs));
-                auto k = Tunings::readKBMFile(testFile(fk));
+                auto s = Tunings::readSCLFile<std::string>(testFile(fs));
+                auto k = Tunings::readKBMFile<std::string>(testFile(fk));
 
                 if (k.octaveDegrees <= s.count)
                     continue;
@@ -638,26 +638,27 @@ TEST_CASE("Exceptions and Bad Files")
     SECTION("Bad SCL")
     {
         // Trailing data is OK
-        REQUIRE_NOTHROW(Tunings::readSCLFile(testFile("bad/extraline.scl")));
+        REQUIRE_NOTHROW(Tunings::readSCLFile<std::string>(testFile("bad/extraline.scl")));
 
-        REQUIRE_THROWS_AS(Tunings::readSCLFile(testFile("bad/badnote.scl")), Tunings::TuningError);
-        REQUIRE_THROWS_AS(Tunings::readSCLFile(testFile("bad/blanknote.scl")),
+        REQUIRE_THROWS_AS(Tunings::readSCLFile<std::string>(testFile("bad/badnote.scl")),
                           Tunings::TuningError);
-        REQUIRE_THROWS_AS(Tunings::readSCLFile(testFile("bad/missingnote.scl")),
+        REQUIRE_THROWS_AS(Tunings::readSCLFile<std::string>(testFile("bad/blanknote.scl")),
+                          Tunings::TuningError);
+        REQUIRE_THROWS_AS(Tunings::readSCLFile<std::string>(testFile("bad/missingnote.scl")),
                           Tunings::TuningError);
     }
 
     SECTION("Bad KBM")
     {
-        REQUIRE_THROWS_AS(Tunings::readKBMFile(testFile("bad/blank-line.kbm")),
+        REQUIRE_THROWS_AS(Tunings::readKBMFile<std::string>(testFile("bad/blank-line.kbm")),
                           Tunings::TuningError);
-        REQUIRE_THROWS_AS(Tunings::readKBMFile(testFile("bad/empty-bad.kbm")),
+        REQUIRE_THROWS_AS(Tunings::readKBMFile<std::string>(testFile("bad/empty-bad.kbm")),
                           Tunings::TuningError);
-        REQUIRE_THROWS_AS(Tunings::readKBMFile(testFile("bad/garbage-key.kbm")),
+        REQUIRE_THROWS_AS(Tunings::readKBMFile<std::string>(testFile("bad/garbage-key.kbm")),
                           Tunings::TuningError);
-        REQUIRE_NOTHROW(Tunings::readKBMFile(testFile("bad/empty-extra.kbm")));
-        REQUIRE_NOTHROW(Tunings::readKBMFile(testFile("bad/extraline-long.kbm")));
-        REQUIRE_THROWS_AS(Tunings::readKBMFile(testFile("bad/missing-note.kbm")),
+        REQUIRE_NOTHROW(Tunings::readKBMFile<std::string>(testFile("bad/empty-extra.kbm")));
+        REQUIRE_NOTHROW(Tunings::readKBMFile<std::string>(testFile("bad/extraline-long.kbm")));
+        REQUIRE_THROWS_AS(Tunings::readKBMFile<std::string>(testFile("bad/missing-note.kbm")),
                           Tunings::TuningError);
     }
 
@@ -714,7 +715,7 @@ TEST_CASE("Built in Generators")
     SECTION("ED3-17")
     {
         auto s = Tunings::evenDivisionOfSpanByM(3, 17);
-        auto sf = Tunings::readSCLFile(testFile("ED3-17.scl"));
+        auto sf = Tunings::readSCLFile<std::string>(testFile("ED3-17.scl"));
 
         Tunings::Tuning ut(sf);
         Tunings::Tuning t(s);
@@ -726,7 +727,7 @@ TEST_CASE("Built in Generators")
     SECTION("ED4-17")
     {
         auto s = Tunings::evenDivisionOfSpanByM(4, 17);
-        auto sf = Tunings::readSCLFile(testFile("ED4-17.scl"));
+        auto sf = Tunings::readSCLFile<std::string>(testFile("ED4-17.scl"));
 
         Tunings::Tuning ut(sf);
         Tunings::Tuning t(s);
@@ -790,17 +791,20 @@ TEST_CASE("Built in Generators")
 
 TEST_CASE("Dos Line Endings and Blanks")
 {
-    SECTION("SCL") { REQUIRE_NOTHROW(Tunings::readSCLFile(testFile("12-intune-dosle.scl"))); }
+    SECTION("SCL")
+    {
+        REQUIRE_NOTHROW(Tunings::readSCLFile<std::string>(testFile("12-intune-dosle.scl")));
+    }
 
     SECTION("Properly read a file with DOS line endings")
     {
-        auto s = Tunings::readSCLFile(testFile("31edo_dos_lineends.scl"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("31edo_dos_lineends.scl"));
         REQUIRE(s.count == 31);
         INFO("If coded with std::getline this will contain a \\r on unixes")
         REQUIRE(s.description == "31 equal divisions of octave");
 
         // the parsing should ive the same floatvalues independent of crlf status obviously
-        auto q = Tunings::readSCLFile(testFile("31edo.scl"));
+        auto q = Tunings::readSCLFile<std::string>(testFile("31edo.scl"));
         for (int i = 0; i < q.count; ++i)
         {
             REQUIRE(q.tones[i].floatValue == s.tones[i].floatValue);
@@ -809,8 +813,8 @@ TEST_CASE("Dos Line Endings and Blanks")
 
     SECTION("KBM")
     {
-        REQUIRE_NOTHROW(Tunings::readKBMFile(testFile("empty-note69-dosle.kbm")));
-        auto k = Tunings::readKBMFile(testFile("empty-note69-dosle.kbm"));
+        REQUIRE_NOTHROW(Tunings::readKBMFile<std::string>(testFile("empty-note69-dosle.kbm")));
+        auto k = Tunings::readKBMFile<std::string>(testFile("empty-note69-dosle.kbm"));
         REQUIRE(k.tuningConstantNote == 69);
     }
 
@@ -919,7 +923,7 @@ TEST_CASE("Scale Position")
 
         {
             // Check whitekeys
-            auto k = Tunings::readKBMFile(testFile("mapping-whitekeys-c261.kbm"));
+            auto k = Tunings::readKBMFile<std::string>(testFile("mapping-whitekeys-c261.kbm"));
             Tunings::Tuning t(k);
 
             // That KBM maps the white keys to the chromatic start so
@@ -942,7 +946,7 @@ TEST_CASE("Scale Position")
     {
         // Check longer and shorter scales
         {
-            auto s = Tunings::readSCLFile(testFile("zeus22.scl"));
+            auto s = Tunings::readSCLFile<std::string>(testFile("zeus22.scl"));
             Tunings::Tuning t(s);
 
             int off = 60;
@@ -958,7 +962,7 @@ TEST_CASE("Scale Position")
 
         // Check longer and shorter scales
         {
-            auto s = Tunings::readSCLFile(testFile("6-exact.scl"));
+            auto s = Tunings::readSCLFile<std::string>(testFile("6-exact.scl"));
             Tunings::Tuning t(s);
 
             int off = 60;
@@ -980,7 +984,7 @@ TEST_CASE("Scale Position")
         {
             int n = rand() % 60 + 30;
 
-            auto s = Tunings::readSCLFile(testFile("zeus22.scl"));
+            auto s = Tunings::readSCLFile<std::string>(testFile("zeus22.scl"));
             auto k = Tunings::startScaleOnAndTuneNoteTo(n, 69, 440);
             Tunings::Tuning t(s, k);
 
@@ -1005,7 +1009,7 @@ TEST_CASE("Default KBM Constructor has Right Base")
         for (auto scl : testSCLs())
         {
             INFO("Loading SCL " << scl);
-            auto s = Tunings::readSCLFile(testFile(scl));
+            auto s = Tunings::readSCLFile<std::string>(testFile(scl));
             Tunings::Tuning t(s);
             REQUIRE(t.frequencyForMidiNoteScaledByMidi0(60) == 32);
         }
@@ -1019,8 +1023,8 @@ TEST_CASE("Different KBM period from Scale period")
         /*
          * Even though we have a 31 note octave we have  12 key mapping.
          */
-        auto s = Tunings::readSCLFile(testFile("31edo.scl"));
-        auto k = Tunings::readKBMFile(testFile("31edo_meantone.kbm"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("31edo.scl"));
+        auto k = Tunings::readKBMFile<std::string>(testFile("31edo_meantone.kbm"));
 
         Tunings::Tuning t(s, k);
         REQUIRE(t.frequencyForMidiNote(69) == Approx(440.0));
@@ -1029,7 +1033,7 @@ TEST_CASE("Different KBM period from Scale period")
 
     SECTION("Perfect 5th UnMapped")
     {
-        auto s = Tunings::readSCLFile(testFile("12-ET-P5.scl"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("12-ET-P5.scl"));
         Tunings::Tuning t(s);
         for (int i = 60 - 36; i < 127; i += 12)
         {
@@ -1042,8 +1046,8 @@ TEST_CASE("Different KBM period from Scale period")
 
     SECTION("Perfect 5th 07 mapping")
     {
-        auto s = Tunings::readSCLFile(testFile("12-ET-P5.scl"));
-        auto k = Tunings::readKBMFile(testFile("mapping-n60-fifths.kbm"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("12-ET-P5.scl"));
+        auto k = Tunings::readKBMFile<std::string>(testFile("mapping-n60-fifths.kbm"));
         Tunings::Tuning t(s, k);
 
         for (int i = 60; i < 70; i += 2)
@@ -1084,7 +1088,7 @@ TEST_CASE("Skipped Note API")
 
     SECTION("SCL-only Tuning skips Nothing")
     {
-        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("12-intune.scl"));
         auto t = Tunings::Tuning(s);
         for (int i = 0; i < 128; ++i)
             REQUIRE(t.isMidiNoteMapped(i));
@@ -1092,7 +1096,7 @@ TEST_CASE("Skipped Note API")
 
     SECTION("KBM-only Tuning absent skips skips Nothing")
     {
-        auto k = Tunings::readKBMFile(testFile("empty-note69.kbm"));
+        auto k = Tunings::readKBMFile<std::string>(testFile("empty-note69.kbm"));
         auto t = Tunings::Tuning(k);
         for (int i = 0; i < 128; ++i)
             REQUIRE(t.isMidiNoteMapped(i));
@@ -1100,8 +1104,8 @@ TEST_CASE("Skipped Note API")
 
     SECTION("Fully Mapped")
     {
-        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
-        auto k = Tunings::readKBMFile(testFile("empty-note69.kbm"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("12-intune.scl"));
+        auto k = Tunings::readKBMFile<std::string>(testFile("empty-note69.kbm"));
         auto t = Tunings::Tuning(s, k);
         for (int i = 0; i < 128; ++i)
             REQUIRE(t.isMidiNoteMapped(i));
@@ -1109,8 +1113,8 @@ TEST_CASE("Skipped Note API")
 
     SECTION("Gaps in the Maps")
     {
-        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
-        auto k = Tunings::readKBMFile(testFile("mapping-whitekeys-a440.kbm"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("12-intune.scl"));
+        auto k = Tunings::readKBMFile<std::string>(testFile("mapping-whitekeys-a440.kbm"));
         auto t = Tunings::Tuning(s, k);
         for (int k = 0; k < 128; ++k)
         {
@@ -1123,7 +1127,7 @@ TEST_CASE("Skipped Note API")
 
     SECTION("Gaps in the Maps KBM Only")
     {
-        auto k = Tunings::readKBMFile(testFile("mapping-whitekeys-a440.kbm"));
+        auto k = Tunings::readKBMFile<std::string>(testFile("mapping-whitekeys-a440.kbm"));
         auto t = Tunings::Tuning(k);
         for (int k = 0; k < 128; ++k)
         {
@@ -1136,8 +1140,8 @@ TEST_CASE("Skipped Note API")
 
     SECTION("Tuning with Gaps")
     {
-        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
-        auto k = Tunings::readKBMFile(testFile("mapping-whitekeys-a440.kbm"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("12-intune.scl"));
+        auto k = Tunings::readKBMFile<std::string>(testFile("mapping-whitekeys-a440.kbm"));
         auto t = Tunings::Tuning(s, k);
         for (int k = 2; k < 128; ++k)
         {
@@ -1154,8 +1158,8 @@ TEST_CASE("Skipped Note API")
 
     SECTION("Tuning with Gaps and Interpolation")
     {
-        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
-        auto k = Tunings::readKBMFile(testFile("mapping-whitekeys-a440.kbm"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("12-intune.scl"));
+        auto k = Tunings::readKBMFile<std::string>(testFile("mapping-whitekeys-a440.kbm"));
         auto t = Tunings::Tuning(s, k).withSkippedNotesInterpolated();
         for (int k = 2; k < 128; ++k)
         {
@@ -1177,8 +1181,8 @@ TEST_CASE("Skipped Note and Root")
 {
     SECTION("Tuning from 60 works")
     {
-        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
-        auto k = Tunings::readKBMFile(testFile("mapping-whitekeys-a440.kbm"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("12-intune.scl"));
+        auto k = Tunings::readKBMFile<std::string>(testFile("mapping-whitekeys-a440.kbm"));
         auto t = Tunings::Tuning(s, k);
         REQUIRE(t.isMidiNoteMapped(60));
         REQUIRE(t.isMidiNoteMapped(69));
@@ -1188,23 +1192,24 @@ TEST_CASE("Skipped Note and Root")
 
     SECTION("Tuning from 59 throws")
     {
-        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
-        auto k = Tunings::readKBMFile(testFile("mapping-whitekeys-from-59-a440.kbm"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("12-intune.scl"));
+        auto k = Tunings::readKBMFile<std::string>(testFile("mapping-whitekeys-from-59-a440.kbm"));
         REQUIRE_THROWS(Tunings::Tuning(s, k));
     }
 
     SECTION("Tuning from 59 no throw")
     {
-        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
-        auto k = Tunings::readKBMFile(testFile("mapping-whitekeys-from-59-a440.kbm"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("12-intune.scl"));
+        auto k = Tunings::readKBMFile<std::string>(testFile("mapping-whitekeys-from-59-a440.kbm"));
         auto t = Tunings::Tuning(s, k, true);
         REQUIRE(t.frequencyForMidiNote(59) == Approx(246.94).margin(0.01));
     }
 
     SECTION("Tuning from 59 altmapping")
     {
-        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
-        auto k = Tunings::readKBMFile(testFile("mapping-whitekeysalt-from-59-a440.kbm"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("12-intune.scl"));
+        auto k =
+            Tunings::readKBMFile<std::string>(testFile("mapping-whitekeysalt-from-59-a440.kbm"));
         REQUIRE_NOTHROW(Tunings::Tuning(s, k, true));
         REQUIRE_THROWS(Tunings::Tuning(s, k, false));
         REQUIRE_THROWS(Tunings::Tuning(s, k));
@@ -1214,8 +1219,8 @@ TEST_CASE("Skipped Note and Root")
 
     SECTION("Tuning from 48 works")
     {
-        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
-        auto k = Tunings::readKBMFile(testFile("mapping-whitekeys-from-48-a440.kbm"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("12-intune.scl"));
+        auto k = Tunings::readKBMFile<std::string>(testFile("mapping-whitekeys-from-48-a440.kbm"));
         auto t = Tunings::Tuning(s, k);
         REQUIRE(t.isMidiNoteMapped(60));
         REQUIRE(t.isMidiNoteMapped(69));
@@ -1225,8 +1230,8 @@ TEST_CASE("Skipped Note and Root")
 
     SECTION("Tuning from 48 works with Interpolation")
     {
-        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
-        auto k = Tunings::readKBMFile(testFile("mapping-whitekeys-from-48-a440.kbm"));
+        auto s = Tunings::readSCLFile<std::string>(testFile("12-intune.scl"));
+        auto k = Tunings::readKBMFile<std::string>(testFile("mapping-whitekeys-from-48-a440.kbm"));
         auto t = Tunings::Tuning(s, k);
         t = t.withSkippedNotesInterpolated();
         REQUIRE(t.isMidiNoteMapped(60));
@@ -1243,8 +1248,9 @@ TEST_CASE("Wrapped KBMs")
     {
         DYNAMIC_SECTION("Testing KBM " << kbm)
         {
-            auto scale = Tunings::readSCLFile(testFile("kbm-fix-012023/exact4.scl"));
-            auto map = Tunings::readKBMFile(testFile(std::string("kbm-fix-012023/") + kbm));
+            auto scale = Tunings::readSCLFile<std::string>(testFile("kbm-fix-012023/exact4.scl"));
+            auto map =
+                Tunings::readKBMFile<std::string>(testFile(std::string("kbm-fix-012023/") + kbm));
             auto tun = Tunings::Tuning(scale, map);
 
             REQUIRE(tun.frequencyForMidiNote(60) == 100.0);
@@ -1260,8 +1266,9 @@ TEST_CASE("Wrapped KBMs")
     }
     DYNAMIC_SECTION("Skipper One")
     {
-        auto scale = Tunings::readSCLFile(testFile("kbm-fix-012023/exact4.scl"));
-        auto map = Tunings::readKBMFile(testFile("kbm-fix-012023/threenote-c-100.kbm"));
+        auto scale = Tunings::readSCLFile<std::string>(testFile("kbm-fix-012023/exact4.scl"));
+        auto map =
+            Tunings::readKBMFile<std::string>(testFile("kbm-fix-012023/threenote-c-100.kbm"));
         auto tun = Tunings::Tuning(scale, map);
         int note = 60;
         for (const auto &v : {100.0, 125.0, 175., 200., 250., 350., 400.})
@@ -1272,8 +1279,9 @@ TEST_CASE("Wrapped KBMs")
     }
     DYNAMIC_SECTION("Skipper 59")
     {
-        auto scale = Tunings::readSCLFile(testFile("kbm-fix-012023/exact4.scl"));
-        auto map = Tunings::readKBMFile(testFile("kbm-fix-012023/threenote-c-100-from-1.kbm"));
+        auto scale = Tunings::readSCLFile<std::string>(testFile("kbm-fix-012023/exact4.scl"));
+        auto map = Tunings::readKBMFile<std::string>(
+            testFile("kbm-fix-012023/threenote-c-100-from-1.kbm"));
         auto tun = Tunings::Tuning(scale, map);
         int note = 60;
         for (const auto &v : {100.0, 140., 160., 200., 280., 320.})
@@ -1284,8 +1292,8 @@ TEST_CASE("Wrapped KBMs")
     }
     DYNAMIC_SECTION("Skipper Long")
     {
-        auto scale = Tunings::readSCLFile(testFile("kbm-fix-012023/exact4.scl"));
-        auto map = Tunings::readKBMFile(testFile("kbm-fix-012023/sixnote-c-100.kbm"));
+        auto scale = Tunings::readSCLFile<std::string>(testFile("kbm-fix-012023/exact4.scl"));
+        auto map = Tunings::readKBMFile<std::string>(testFile("kbm-fix-012023/sixnote-c-100.kbm"));
         auto tun = Tunings::Tuning(scale, map);
         int note = 60;
         for (const auto &v : {100.0, 125.0, 175., 200., 250., 350., 400.})
@@ -1347,16 +1355,18 @@ TEST_CASE("Surge 7822 non uniform mapping misses scale center")
 {
     SECTION("At Note 57 - no wrapping")
     {
-        auto scale = Tunings::readSCLFile(testFile("kbm-wrapping-7822/31edo2.scl"));
-        auto map = Tunings::readKBMFile(testFile("kbm-wrapping-7822/31edo2-subset-57.kbm"));
+        auto scale = Tunings::readSCLFile<std::string>(testFile("kbm-wrapping-7822/31edo2.scl"));
+        auto map =
+            Tunings::readKBMFile<std::string>(testFile("kbm-wrapping-7822/31edo2-subset-57.kbm"));
         auto t = Tunings::Tuning(scale, map);
         REQUIRE(t.frequencyForMidiNote(60) == Approx(400.0));
         REQUIRE(t.frequencyForMidiNote(61) == Approx(418.2936581199));
     }
     SECTION("At Note 69 - wrapping")
     {
-        auto scale = Tunings::readSCLFile(testFile("kbm-wrapping-7822/31edo2.scl"));
-        auto map = Tunings::readKBMFile(testFile("kbm-wrapping-7822/31edo2-subset.kbm"));
+        auto scale = Tunings::readSCLFile<std::string>(testFile("kbm-wrapping-7822/31edo2.scl"));
+        auto map =
+            Tunings::readKBMFile<std::string>(testFile("kbm-wrapping-7822/31edo2-subset.kbm"));
         auto t = Tunings::Tuning(scale, map);
         REQUIRE(t.frequencyForMidiNote(60) == Approx(400.0));
         REQUIRE(t.frequencyForMidiNote(61) == Approx(418.2936581199));
@@ -1367,7 +1377,7 @@ TEST_CASE("Loading Ableton scales")
 {
     SECTION("Good ASCL file")
     {
-        auto s = Tunings::readASCLFile(testFile("rast.ascl"));
+        auto s = Tunings::readASCLFile<std::string>(testFile("rast.ascl"));
         REQUIRE(s.scale.count == 12);
         REQUIRE(s.source == "Inside Arabic Music, Chapter 11 (description of Tuning System); Ch "
                             "14-16 (descriptions of Ajnas); Ch 24 (Sayr diagrams)");
@@ -1382,7 +1392,7 @@ TEST_CASE("Loading Ableton scales")
         REQUIRE(s.keyboardMapping.middleNote == 60);
         REQUIRE(s.keyboardMapping.tuningConstantNote == 60);
 
-        auto s2 = Tunings::readASCLFile(testFile("rast6.ascl"));
+        auto s2 = Tunings::readASCLFile<std::string>(testFile("rast6.ascl"));
         REQUIRE(s2.notationMapping.count == 20);
         REQUIRE(s2.notationMapping.names[3] == "E1/2♭-a-");
     }
@@ -1392,8 +1402,8 @@ TEST_CASE("Loading Ableton scales")
         std::string files[3] = {"maqamat", "31-edo", "liwung-tbn"};
         for (std::string file : files)
         {
-            auto s = Tunings::readASCLFile(testFile(file + ".ascl"));
-            auto k = Tunings::readKBMFile(testFile(file + ".kbm"));
+            auto s = Tunings::readASCLFile<std::string>(testFile(file + ".ascl"));
+            auto k = Tunings::readKBMFile<std::string>(testFile(file + ".kbm"));
             REQUIRE(s.keyboardMapping.count == k.count);
             REQUIRE(s.keyboardMapping.tuningFrequency == k.tuningFrequency);
             REQUIRE(s.keyboardMapping.middleNote == k.middleNote);
@@ -1403,7 +1413,7 @@ TEST_CASE("Loading Ableton scales")
 
     SECTION("Bad ASCL file")
     {
-        REQUIRE_THROWS_AS(Tunings::readASCLFile(testFile("bad/bad-rast.ascl")),
+        REQUIRE_THROWS_AS(Tunings::readASCLFile<std::string>(testFile("bad/bad-rast.ascl")),
                           Tunings::TuningError);
     }
 
@@ -1418,7 +1428,7 @@ TEST_CASE("Loading Ableton scales")
 
     SECTION("Tuning read with ASCL")
     {
-        auto s = Tunings::readASCLFile(testFile("rast.ascl"));
+        auto s = Tunings::readASCLFile<std::string>(testFile("rast.ascl"));
         Tunings::Tuning t(s);
         REQUIRE(t.frequencyForMidiNote(s.keyboardMapping.tuningConstantNote) ==
                 Approx(s.referencePitchFreq));
@@ -1434,14 +1444,14 @@ TEST_CASE("Loading Ableton scales")
         REQUIRE(t.noteNameForScalePosition(4) == "E1/2♭");
         REQUIRE(t.noteNameForScalePosition(4 + t.scale.count) == "E1/2♭");
 
-        auto s2 = Tunings::readASCLFile(testFile("rast6.ascl"));
+        auto s2 = Tunings::readASCLFile<std::string>(testFile("rast6.ascl"));
         Tunings::Tuning t2(s2);
         REQUIRE(t2.midiNoteForNoteName("C", 4) == 60);
     }
 
     SECTION("Tuning read without ASCL")
     {
-        auto s = Tunings::readASCLFile(testFile("31edo.scl"));
+        auto s = Tunings::readASCLFile<std::string>(testFile("31edo.scl"));
         Tunings::Tuning t(s);
         REQUIRE_THROWS_AS(t.midiNoteForNoteName("E1/3♭", 3), Tunings::TuningError);
         REQUIRE_THROWS_AS(t.noteNameForScalePosition(4), Tunings::TuningError);

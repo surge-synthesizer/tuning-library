@@ -273,7 +273,10 @@ AbletonScale readASCLStream(std::istream &inf);
 /**
  * readASCLFile returns an AbletonScale from the ASCL file in fname
  */
-AbletonScale readASCLFile(std::string fname);
+AbletonScale readASCLFile(const StreamablePath auto &path);
+
+[[deprecated("readASCLFile(const std::string&) is unsafe, use path type instead")]]
+AbletonScale readASCLFile(const std::string &fname);
 
 /**
  * parseASCLData returns an AbletonScale from the ASCL file contents in memory
