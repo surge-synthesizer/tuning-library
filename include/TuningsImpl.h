@@ -609,7 +609,7 @@ inline Tuning::Tuning(const Scale &s_, const KeyboardMapping &k_, bool allowTuni
 
     Scale s = s_;
     KeyboardMapping k = k_;
-    int oSP;
+    int oSP = 0;
     if (s.count <= 0)
         throw TuningError("Unable to tune to a scale with no notes. Your scale provided " +
                           std::to_string(s.count) + " notes.");
@@ -724,13 +724,14 @@ inline Tuning::Tuning(const Scale &s_, const KeyboardMapping &k_, bool allowTuni
         scalePositionOfTuningNote = k.keys[scalePositionOfTuningNote];
         if (scalePositionOfTuningNote == -1 && !allowTuningCenterOnUnmapped)
         {
-            std::string s = "Keyboard mapping is tuning an unmapped key. ";
-            s += "Your tuning mapping is mapping key " + std::to_string(k.tuningConstantNote) +
-                 " as " + "the tuning constant note, but that is scale note " +
-                 std::to_string(oSP) + " given your scale root of " + std::to_string(k.middleNote) +
-                 " which your mapping does not assign. Please set your tuning constant "
-                 "note to a mapped key.";
-            throw TuningError(s);
+            std::string message = "Keyboard mapping is tuning an unmapped key. ";
+            message += "Your tuning mapping is mapping key " +
+                       std::to_string(k.tuningConstantNote) + " as " +
+                       "the tuning constant note, but that is scale note " + std::to_string(oSP) +
+                       " given your scale root of " + std::to_string(k.middleNote) +
+                       " which your mapping does not assign. Please set your tuning constant "
+                       "note to a mapped key.";
+            throw TuningError(message);
         }
     }
     double tuningCenterPitchOffset;
@@ -740,7 +741,7 @@ inline Tuning::Tuning(const Scale &s_, const KeyboardMapping &k_, bool allowTuni
     {
         if (scalePositionOfTuningNote == -1 && allowTuningCenterOnUnmapped)
         {
-            int low, high;
+            int low = -1, high = -1;
             bool octave_up = false;
             bool octave_down = false;
             float pitch_high;
@@ -775,10 +776,10 @@ inline Tuning::Tuning(const Scale &s_, const KeyboardMapping &k_, bool allowTuni
 
             // determine high and low pitches
             double dt = s.tones[s.count - 1].cents;
-            pitch_low =
-                octave_down ? s.tones[low - 1].cents - dt : s.tones[low - 1].floatValue - 1.0;
-            pitch_high =
-                octave_up ? s.tones[high - 1].cents + dt : s.tones[high - 1].floatValue - 1.0;
+            pitch_low = static_cast<float>(octave_down ? s.tones[low - 1].cents - dt
+                                                       : s.tones[low - 1].floatValue - 1.0);
+            pitch_high = static_cast<float>(octave_up ? s.tones[high - 1].cents + dt
+                                                      : s.tones[high - 1].floatValue - 1.0);
             tuningCenterPitchOffset = (pitch_high + pitch_low) / 2.f;
         }
         else
@@ -827,14 +828,15 @@ inline Tuning::Tuning(const Scale &s_, const KeyboardMapping &k_, bool allowTuni
                 int cm = k.keys[mappingKey];
                 if (!allowTuningCenterOnUnmapped && cm < 0)
                 {
-                    std::string s = "Keyboard mapping is tuning an unmapped key. ";
-                    s += "Your tuning mapping is mapping key " + std::to_string(posPitch0 - 256) +
-                         " as " + "the tuning constant note, but that is scale note " +
-                         std::to_string(mappingKey) + " given your scale root of " +
-                         std::to_string(k.middleNote) +
-                         " which your mapping does not assign. Please set your tuning constant "
-                         "note to a mapped key.";
-                    throw TuningError(s);
+                    std::string message = "Keyboard mapping is tuning an unmapped key. ";
+                    message +=
+                        "Your tuning mapping is mapping key " + std::to_string(posPitch0 - 256) +
+                        " as " + "the tuning constant note, but that is scale note " +
+                        std::to_string(mappingKey) + " given your scale root of " +
+                        std::to_string(k.middleNote) +
+                        " which your mapping does not assign. Please set your tuning constant "
+                        "note to a mapped key.";
+                    throw TuningError(message);
                 }
             }
             scalepositiontable[i] = scalePositionOfTuningNote % s.count;
@@ -1030,7 +1032,8 @@ inline int Tuning::midiNoteForNoteName(std::string noteName, int octave) const
         std::string s = "Invalid note name '" + noteName + "'";
         throw TuningError(s);
     }
-    int scalePosition = positive_mod(it - notationMapping.names.begin() + 1, notationMapping.count);
+    int scalePosition = positive_mod(static_cast<int>(it - notationMapping.names.begin() + 1),
+                                     notationMapping.count);
     return std::min(
         std::max(0, scalePosition + keyboardMapping.middleNote +
                         keyboardMapping.octaveDegrees * (octave - keyboardMapping.tuningOctave)),
@@ -1176,7 +1179,7 @@ inline AbletonScale readASCLStream(std::istream &inf)
             }
 
             // check the count before rotating; an empty list has no begin() + 1
-            as.notationMapping.count = as.notationMapping.names.size();
+            as.notationMapping.count = static_cast<int>(as.notationMapping.names.size());
             if (as.notationMapping.count != as.scale.count)
             {
                 std::string s = "Invalid NOTE_NAMES entry '" + rawText + "': Expecting " +
@@ -1323,7 +1326,7 @@ inline double AbletonScale::frequencyForScalePosition(int scalePosition)
 inline double AbletonScale::centsForScalePosition(int scalePosition)
 {
     auto n = scale.tones.size();
-    auto t = scale.tones[positive_mod(scalePosition, n)];
+    auto t = scale.tones[positive_mod(scalePosition, static_cast<unsigned>(n))];
     return t.cents + floor(1.0 * scalePosition / n) * scale.tones.back().cents;
 }
 
