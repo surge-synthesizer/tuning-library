@@ -1212,6 +1212,14 @@ TEST_CASE("Skipped Note and Root")
         REQUIRE(t.frequencyForMidiNote(59) == Approx(440.0 * pow(2.f, -(5.5 / 12))).margin(0.01));
     }
 
+    SECTION("Tuning from unmapped key with no mapped key throws")
+    {
+        auto s = Tunings::readSCLFile(testFile("12-intune.scl"));
+        auto k = Tunings::parseKBMData("12\n0\n127\n60\n69\n440.0\n12\n"
+                                       "x\nx\nx\nx\nx\nx\nx\nx\nx\nx\nx\nx\n");
+        REQUIRE_THROWS_AS(Tunings::Tuning(s, k, true), Tunings::TuningError);
+    }
+
     SECTION("Tuning from 48 works")
     {
         auto s = Tunings::readSCLFile(testFile("12-intune.scl"));

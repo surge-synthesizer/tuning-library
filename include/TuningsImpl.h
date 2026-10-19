@@ -26,6 +26,7 @@
 #include <limits>
 #include <stdexcept>
 #include <algorithm>
+#include <optional>
 
 namespace Tunings
 {
@@ -741,13 +742,13 @@ inline Tuning::Tuning(const Scale &s_, const KeyboardMapping &k_, bool allowTuni
     {
         if (scalePositionOfTuningNote == -1 && allowTuningCenterOnUnmapped)
         {
-            int low = -1, high = -1;
+            std::optional<int> low, high;
             bool octave_up = false;
             bool octave_down = false;
             float pitch_high;
             float pitch_low;
             // find next closest mapped note
-            for (int i = oSP - 1; i != oSP; i = (i - 1) % k.count)
+            for (int i = positive_mod(oSP - 1, k.count); i != oSP; i = positive_mod(i - 1, k.count))
             {
                 if (k.keys[i] != -1)
                 {
@@ -760,7 +761,7 @@ inline Tuning::Tuning(const Scale &s_, const KeyboardMapping &k_, bool allowTuni
                     octave_down = true;
                 }
             }
-            for (int i = oSP + 1; i != oSP; i = (i + 1) % k.count)
+            for (int i = positive_mod(oSP + 1, k.count); i != oSP; i = positive_mod(i + 1, k.count))
             {
                 if (k.keys[i] != -1)
                 {
@@ -774,12 +775,18 @@ inline Tuning::Tuning(const Scale &s_, const KeyboardMapping &k_, bool allowTuni
                 }
             }
 
+            if (!low || !high)
+            {
+                throw TuningError("Keyboard mapping is tuning an unmapped key, but no other key "
+                                  "of the mapping is mapped.");
+            }
+
             // determine high and low pitches
             double dt = s.tones[s.count - 1].cents;
-            pitch_low = static_cast<float>(octave_down ? s.tones[low - 1].cents - dt
-                                                       : s.tones[low - 1].floatValue - 1.0);
-            pitch_high = static_cast<float>(octave_up ? s.tones[high - 1].cents + dt
-                                                      : s.tones[high - 1].floatValue - 1.0);
+            pitch_low = static_cast<float>(octave_down ? s.tones[*low - 1].cents - dt
+                                                       : s.tones[*low - 1].floatValue - 1.0);
+            pitch_high = static_cast<float>(octave_up ? s.tones[*high - 1].cents + dt
+                                                      : s.tones[*high - 1].floatValue - 1.0);
             tuningCenterPitchOffset = (pitch_high + pitch_low) / 2.f;
         }
         else
